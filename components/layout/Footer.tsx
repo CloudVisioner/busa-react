@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { FiMail } from 'react-icons/fi'
 import { ROUTES } from '@/lib/constants/routes'
 import { cn } from '@/lib/utils/cn'
 
@@ -15,7 +16,9 @@ export function Footer({ className }: FooterProps) {
       <div className="mx-auto max-w-7xl px-6 py-14 md:px-8 md:py-16">
         <div className="grid grid-cols-1 gap-10 text-sm leading-relaxed md:grid-cols-4">
           <div className="md:col-span-1">
-            <div className="mb-4 text-xl font-black text-[#0a66ff]">BUSA</div>
+            <Link className="mb-4 inline-block font-headline text-xl font-black text-[#E53935]" href={ROUTES.HOME}>
+              BUSA
+            </Link>
             <p className="max-w-xs text-slate-600">Busan shahridagi O&apos;zbekistonlik talabalar uyushmasi.</p>
           </div>
 
@@ -65,7 +68,7 @@ export function Footer({ className }: FooterProps) {
             <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-900">Manzil</h4>
             <p className="text-slate-600">South Korea, Busan, Nam-gu, Daeyeon-dong</p>
             <div className="mt-4 flex items-center gap-2 font-semibold text-[#0a66ff]">
-              <span className="material-symbols-outlined text-sm">mail</span>
+              <FiMail className="h-4 w-4 shrink-0" aria-hidden />
               info@busa.uz
             </div>
           </div>

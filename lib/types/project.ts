@@ -5,6 +5,7 @@ export interface Project {
   summary: string
   description: string
   coverPhoto: string
+  category: string
   tags: string[]
   isFeatured: boolean
 }

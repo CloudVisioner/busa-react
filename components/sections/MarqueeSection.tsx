@@ -50,9 +50,11 @@ export function MarqueeSection({ className }: MarqueeSectionProps) {
   const baseIconClass = 'h-10 w-10 cursor-pointer text-slate-400 opacity-55 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0'
 
   return (
-    <section className={cn('bg-surface py-20', className)}>
-      <div className="mx-auto mb-10 max-w-7xl px-6">
-        <h3 className="text-center font-label text-xs tracking-[0.3em] uppercase text-outline">HAMKORLARIMIZ VA DO&apos;STLARIMIZ</h3>
+    <section className={cn('bg-surface py-20 md:py-24', className)}>
+      <div className="mx-auto mb-12 max-w-7xl px-6 text-center md:mb-14">
+        <h2 className="font-headline text-2xl font-bold leading-tight tracking-tight text-primary sm:text-3xl md:text-4xl lg:text-5xl">
+          HAMKORLARIMIZ VA HOMIYILARIMIZ
+        </h2>
       </div>
 
       <div className="overflow-hidden whitespace-nowrap">

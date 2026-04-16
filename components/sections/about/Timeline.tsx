@@ -61,15 +61,19 @@ export function Timeline({ className }: TimelineProps) {
   const activeItem = ITEMS.find((item) => item.year === activeYear) ?? ITEMS[0]
 
   return (
-    <section className={cn('bg-[#f5f5f7] px-6 py-24 md:py-28', className)}>
+    <section className={cn('bg-[#f5f5f7] px-6 py-28 md:px-8 md:py-32', className)}>
       <div className="mx-auto max-w-7xl">
-        <p className="mb-4 text-center font-label text-base font-extrabold uppercase tracking-[0.18em] text-on-primary-fixed-variant md:text-lg">BUSA tarixi</p>
-        <h2 className="mb-4 text-center font-headline text-4xl font-bold tracking-tight text-primary md:text-5xl">2021–2025 prezidentlar va o&apos;zgarishlar</h2>
-        <p className="mx-auto mb-10 max-w-3xl text-center text-base leading-8 text-slate-600 md:text-lg">
+        <p className="mb-5 text-center font-label text-base font-extrabold uppercase tracking-[0.18em] text-on-primary-fixed-variant md:text-lg">
+          BUSA tarixi
+        </p>
+        <h2 className="mb-5 text-center font-headline text-[2rem] font-bold leading-tight tracking-tight text-primary md:text-5xl lg:text-[3rem]">
+          2021–2025 prezidentlar va o&apos;zgarishlar
+        </h2>
+        <p className="mx-auto mb-12 max-w-3xl text-center text-[1.05rem] leading-relaxed text-slate-600 md:mb-14 md:text-lg md:leading-8">
           Har bir yil uchun alohida president kartasini tanlang va o&apos;sha davrdagi asosiy o&apos;zgarishlarni ko&apos;ring.
         </p>
 
-        <div className="mb-8 flex flex-wrap justify-center gap-2">
+        <div className="mb-10 flex flex-wrap justify-center gap-2.5 md:mb-12 md:gap-3">
           {ITEMS.map((item) => {
             const isActive = item.year === activeYear
             return (
@@ -78,8 +82,8 @@ export function Timeline({ className }: TimelineProps) {
                 type="button"
                 onClick={() => setActiveYear(item.year)}
                 className={cn(
-                  'rounded-full border px-4 py-2 text-sm font-bold transition',
-                  isActive ? 'border-[#0a66ff] bg-[#0a66ff] text-white' : 'border-black/10 bg-white text-slate-700 hover:border-[#0a66ff]/40 hover:text-[#0a66ff]'
+                  'min-w-[4.5rem] rounded-full border px-5 py-2.5 text-lg font-bold tabular-nums tracking-tight transition md:min-w-[5rem] md:px-6 md:py-3 md:text-xl',
+                  isActive ? 'border-[#00236f] bg-[#00236f] text-white' : 'border-black/10 bg-white text-slate-700 hover:border-[#00236f]/40 hover:text-[#00236f]'
                 )}
               >
                 {item.year}
@@ -88,32 +92,32 @@ export function Timeline({ className }: TimelineProps) {
           })}
         </div>
 
-        <div className="mx-auto max-w-5xl rounded-[2rem] border border-black/5 bg-white p-4 shadow-[0_18px_52px_rgba(25,28,30,0.12)] md:p-5">
-          <article className="grid items-center gap-5 md:grid-cols-[250px_1fr]">
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-black/5 bg-white p-5 shadow-[0_18px_52px_rgba(25,28,30,0.12)] md:p-7 lg:p-8">
+          <article className="grid items-center gap-6 md:grid-cols-[250px_1fr] md:gap-7">
             <div className="rounded-2xl border border-black/5 bg-white p-0">
               <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
                 <Image src={activeItem.image} alt={`${activeItem.president} portreti`} fill sizes="(max-width: 768px) 100vw, 250px" className="object-cover" />
               </div>
-              <div className="px-3 py-4 text-center">
-                <h3 className="text-2xl font-bold text-slate-900">{activeItem.president}</h3>
-                <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#0a66ff]">Prezident</p>
+              <div className="px-4 py-5 text-center">
+                <h3 className="text-2xl font-bold text-slate-900 md:text-[1.75rem]">{activeItem.president}</h3>
+                <p className="mt-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[#0a66ff] md:text-sm">Prezident</p>
               </div>
             </div>
 
             <div className="flex h-full flex-col justify-center">
-              <div className="mb-6 text-center md:text-center">
-                <h3 className="font-headline text-3xl font-black tracking-tight text-slate-900 md:text-4xl">{activeItem.president}</h3>
-                <p className="mt-2 text-sm text-slate-600 md:text-base">BUSA rivojlanishidagi asosiy iz va yetakchilik ruhi</p>
+              <div className="mb-7 text-center md:text-center">
+                <h3 className="font-headline text-3xl font-black tracking-tight text-slate-900 md:text-4xl lg:text-[2.5rem]">{activeItem.president}</h3>
+                <p className="mt-3 text-base leading-relaxed text-slate-600 md:text-lg">BUSA rivojlanishidagi asosiy iz va yetakchilik ruhi</p>
               </div>
 
-              <div className="grid gap-4">
-                <div className="group rounded-2xl border border-black/5 bg-[#f9fafb] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(10,102,255,0.14)]">
-                  <p className="mb-2 text-center text-sm font-extrabold uppercase tracking-[0.12em] text-[#0a66ff]">Nima qildi</p>
-                  <p className="text-lg leading-8 text-slate-700">{activeItem.did}</p>
+              <div className="grid gap-5">
+                <div className="group rounded-2xl border border-black/5 bg-[#f9fafb] p-7 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(10,102,255,0.14)] md:p-8">
+                  <p className="mb-3 text-center text-sm font-extrabold uppercase tracking-[0.12em] text-[#0a66ff] md:text-base">Nima qildi</p>
+                  <p className="text-lg leading-relaxed text-slate-700 md:text-xl md:leading-8">{activeItem.did}</p>
                 </div>
-                <div className="group rounded-2xl border border-black/5 bg-[#f9fafb] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(10,102,255,0.14)]">
-                  <p className="mb-2 text-center text-sm font-extrabold uppercase tracking-[0.12em] text-[#0a66ff]">Falsafa</p>
-                  <p className="text-lg leading-8 text-slate-700">{activeItem.philosophy}</p>
+                <div className="group rounded-2xl border border-black/5 bg-[#f9fafb] p-7 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(10,102,255,0.14)] md:p-8">
+                  <p className="mb-3 text-center text-sm font-extrabold uppercase tracking-[0.12em] text-[#0a66ff] md:text-base">Falsafa</p>
+                  <p className="text-lg leading-relaxed text-slate-700 md:text-xl md:leading-8">{activeItem.philosophy}</p>
                 </div>
               </div>
             </div>
