@@ -70,7 +70,8 @@ export function Timeline({ className }: TimelineProps) {
           2021–2025 prezidentlar va o&apos;zgarishlar
         </h2>
         <p className="mx-auto mb-12 max-w-3xl text-center text-[1.05rem] leading-relaxed text-slate-600 md:mb-14 md:text-lg md:leading-8">
-          Har bir yil uchun alohida president kartasini tanlang va o&apos;sha davrdagi asosiy o&apos;zgarishlarni ko&apos;ring.
+          Har bir yil bo&apos;yicha prezidentning to&apos;liq ismi, qilgan ishlari, qanday yondashuv qo&apos;llagani va nima uchun bu yo&apos;nalish
+          tanlangani haqida qisqa, aniq va professional ma&apos;lumot bilan tanishing.
         </p>
 
         <div className="mb-10 flex flex-wrap justify-center gap-2.5 md:mb-12 md:gap-3">
@@ -92,34 +93,31 @@ export function Timeline({ className }: TimelineProps) {
           })}
         </div>
 
-        <div className="mx-auto max-w-5xl rounded-[2rem] border border-black/5 bg-white p-5 shadow-[0_18px_52px_rgba(25,28,30,0.12)] md:p-7 lg:p-8">
-          <article className="grid items-center gap-6 md:grid-cols-[250px_1fr] md:gap-7">
-            <div className="rounded-2xl border border-black/5 bg-white p-0">
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-black/5 bg-white p-6 shadow-[0_18px_52px_rgba(25,28,30,0.12)] md:p-8 lg:p-10">
+          <article className="grid items-center gap-8 md:grid-cols-[250px_1fr] md:gap-10">
+            <div className="rounded-2xl border border-black/5 bg-white">
               <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
                 <Image src={activeItem.image} alt={`${activeItem.president} portreti`} fill sizes="(max-width: 768px) 100vw, 250px" className="object-cover" />
               </div>
               <div className="px-4 py-5 text-center">
-                <h3 className="text-2xl font-bold text-slate-900 md:text-[1.75rem]">{activeItem.president}</h3>
+                <h3 className="text-2xl font-bold text-slate-900">{activeItem.president}</h3>
                 <p className="mt-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[#0a66ff] md:text-sm">Prezident</p>
               </div>
             </div>
 
-            <div className="flex h-full flex-col justify-center">
-              <div className="mb-7 text-center md:text-center">
-                <h3 className="font-headline text-3xl font-black tracking-tight text-slate-900 md:text-4xl lg:text-[2.5rem]">{activeItem.president}</h3>
-                <p className="mt-3 text-base leading-relaxed text-slate-600 md:text-lg">BUSA rivojlanishidagi asosiy iz va yetakchilik ruhi</p>
-              </div>
-
-              <div className="grid gap-5">
-                <div className="group rounded-2xl border border-black/5 bg-[#f9fafb] p-7 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(10,102,255,0.14)] md:p-8">
-                  <p className="mb-3 text-center text-sm font-extrabold uppercase tracking-[0.12em] text-[#0a66ff] md:text-base">Nima qildi</p>
-                  <p className="text-lg leading-relaxed text-slate-700 md:text-xl md:leading-8">{activeItem.did}</p>
-                </div>
-                <div className="group rounded-2xl border border-black/5 bg-[#f9fafb] p-7 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(10,102,255,0.14)] md:p-8">
-                  <p className="mb-3 text-center text-sm font-extrabold uppercase tracking-[0.12em] text-[#0a66ff] md:text-base">Falsafa</p>
-                  <p className="text-lg leading-relaxed text-slate-700 md:text-xl md:leading-8">{activeItem.philosophy}</p>
-                </div>
-              </div>
+            <div className="flex h-full flex-col justify-center space-y-5 text-left md:space-y-6">
+              <p className="text-base leading-8 text-slate-700 md:text-lg">
+                <span className="font-bold text-slate-900">Nima qildi:</span> {activeItem.did}
+              </p>
+              <p className="text-base leading-8 text-slate-700 md:text-lg">
+                <span className="font-bold text-slate-900">Qanday:</span> {activeItem.changed}
+              </p>
+              <p className="text-base leading-8 text-slate-700 md:text-lg">
+                <span className="font-bold text-slate-900">Nega:</span> {activeItem.vision}
+              </p>
+              <p className="text-base leading-8 text-slate-700 md:text-lg">
+                <span className="font-bold text-slate-900">Yetakchilik yondashuvi:</span> {activeItem.philosophy}
+              </p>
             </div>
           </article>
         </div>

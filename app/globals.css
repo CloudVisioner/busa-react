@@ -55,3 +55,50 @@ body {
   width: max-content;
   animation: scroll 42s linear infinite;
 }
+
+.article-content p {
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+  color: #6e6e73;
+  font-size: 17px;
+}
+
+.article-content h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  color: #1d1d1f;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.003em;
+}
+
+.article-content ul {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding-left: 0.5rem;
+}
+
+.article-content ul li {
+  position: relative;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  color: #6e6e73;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.article-content ul li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #00236f;
+  font-weight: 600;
+}
+
+.article-content .callout {
+  margin: 2rem 0;
+  border-left: 4px solid #00236f;
+  border-radius: 12px;
+  background: #f5f5f7;
+  padding: 24px;
+}

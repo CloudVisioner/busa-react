@@ -1,55 +1,146 @@
 import Footer from '@/components/layout/Footer'
 import Navbar from '@/components/layout/Navbar'
-import { cn } from '@/lib/utils/cn'
+import JoinCTA from '@/components/sections/about/JoinCTA'
+import VisaArticlesSection from '@/components/sections/visa/VisaArticlesSection'
+import Image from 'next/image'
 
 interface VisaDetailConfig {
+  categoryLabel: string
   title: string
-  subtitle: string
-  summary: string[]
-  bullets: string[]
+  heroDescription: string
+  heroImage: string
+  quickFacts: Array<{ label: string; value: string }>
+  checklist: string[]
+  warningTitle: string
+  warningDescription: string
+  steps: Array<{ title: string; description: string }>
 }
 
 const VISA_DETAILS: Record<string, VisaDetailConfig> = {
   'd-2': {
-    title: 'D-2 — Talabalik vizasi',
-    subtitle: "O'qish davomiyligi bo'yicha uzaytirish imkoniyati",
-    summary: [
-      "D-2 viza oliy ta'lim muassasalarida o'qiyotgan talabalar uchun mo'ljallangan bo'lib, o'qish davomiyligiga qarab uzaytirib boriladi.",
-      "Part-time ish imkoniyatlari, kreditlar va uzaytirish talablari universitet va migratsiya xizmatining qo'llanmalariga asoslanadi.",
+    categoryLabel: 'Visa Category',
+    title: 'D-2 - Talaba vizasi',
+    heroDescription:
+      "Koreya universitetida bakalavr, magistratura yoki tadqiqot o'qish uchun mo'ljallangan rasmiy ruxsatnoma.",
+    heroImage:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuBIDaJDJjVW2yoqNDhkzcjsYwtZXGoMjkNUQcUtgFLdxeY6x3AgzuxCLqFZ5908ROHOZj0w3nO8nieLw1kZfKcHIrcdZDigCr7hv70NiZoLrrOxNlbuxslTLaV6xdD4B9MKV9-SNdsD_A-cNL6SpzmflXc9nSH64fHfz2pb9-VB6HT94kjT9sXw7Ca-kTDj07Q_4ILajtBrvaJX2xcxNeC0Pc93Wq5Ny7JjhhLLY_Sn-hQm4b3cbeg33TlDXIG8tLfvdMlLOfF_oPg',
+    quickFacts: [
+      { label: 'Muddat', value: '1-2 yil' },
+      { label: 'Narx', value: '130,000 KRW' },
+      { label: 'Yangilash', value: '6 oy' },
+      { label: 'Ishlash', value: '25 soat' },
     ],
-    bullets: [
-      "Haftasiga ma'lum soatgacha part-time ishlash huquqi (odatda 20 soat atrofida).",
-      "TOPIK yoki universitet ichki til imtihonlari orqali til talablari.",
-      "Semestrlar bo'yicha o'qish natijalari (GPA) viza uzaytirishga ta'sir qiladi.",
-      "O'qishdan keyin D-10 yoki boshqa vizaga o'tish uchun asos bo'lib xizmat qilishi mumkin.",
+    checklist: [
+      "Xorijga chiqish pasporti (asli)",
+      'Universitet qabul xati (Standard Admission Letter)',
+      "Bank hisobidan ko'chirma (oxirgi 6 oy)",
+      "Oq fondagi rasm (3.5x4.5)",
+    ],
+    warningTitle: 'Muhim ogohlantirish',
+    warningDescription:
+      "Bank hisobida kam mablag' bo'lishi eng ko'p rad etilish sababi. Kamida 20,000 USD ekvivalent mablag' tavsiya etiladi.",
+    steps: [
+      {
+        title: 'Universitetga hujjat topshirish',
+        description:
+          "Tanlagan universitetning xalqaro bo'limiga hujjat yuboring va Certificate of Admission hujjatini oling.",
+      },
+      {
+        title: 'Moliyaviy tayyorgarlik',
+        description: "Bank hisobingizda o'qish va yashash xarajatlarini qoplaydigan mablag'ni oldindan shakllantiring.",
+      },
+      {
+        title: 'Elchixonaga ariza',
+        description:
+          "KVAC yoki elchixonadan navbat olib, tayyorlangan hujjatlarni topshiring va ariza jarayonini boshlang.",
+      },
+      {
+        title: 'Suhbat va natija',
+        description: "Zarurat bo'lsa konsullik suhbatidan o'ting. Jarayon odatda 10-15 ish kuni davom etadi.",
+      },
     ],
   },
   'd-10': {
-    title: 'D-10 — Ish izlash vizasi',
-    subtitle: '6 oygacha ish qidirish huquqi',
-    summary: [
-      "D-10 viza bitiruvchilar va malakali mutaxassislar uchun Koreyada ish qidirish davrini rasmiylashtirish imkonini beradi.",
-      "Vaqtinchalik bo'lsa-da, bu viza ish suhbatlari, stajirovka va professional networking uchun qulay huquqiy maydon yaratadi.",
+    categoryLabel: 'Visa Category',
+    title: 'D-10 - Ish izlash vizasi',
+    heroDescription:
+      "Bitiruvdan keyin Koreyada qonuniy ravishda ish qidirish, suhbatlarda qatnashish va professional tarmoqni kengaytirish uchun viza turi.",
+    heroImage:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuBinAeXp6ZaadaK-FxHxsIWmeG2X0ZeJbnjj6OglUtYfFthulebKditqy0UdRBvWZn00KHmWIYBLVPSbL6oAruKHz-1lepWr7Xz7en9LqxTBG22OEtKGILyrIbyb77hF-BAZWU98mOZDgSZGw1S8vVuJZEwP-QD7NHo3B_DbMM1xQNbx8nx6eFDNBv9br88sHNKWAElBSRrmnFvr7l-l44v_8LnypqCsUjYwOHnAHDz7zZABx9HgPC7QebWa1NqAr21wtBss3lsHCg',
+    quickFacts: [
+      { label: 'Muddat', value: '6 oy' },
+      { label: 'Narx', value: '100,000 KRW' },
+      { label: 'Yangilash', value: 'Ball tizimi' },
+      { label: 'Ishlash', value: 'Cheklangan' },
     ],
-    bullets: [
-      'Odatda 6 oygacha beriladi, ayrim holatlarda ball tizimi orqali uzaytirilishi mumkin.',
-      'Stajirovka yoki qisqa muddatli professional faoliyatni rasmiylashtirish imkoniyati.',
-      "Rezyume va portfolioni Koreya bozoriga moslashtirish D-10 davrining eng samarali foydalanish yo'li hisoblanadi.",
-      "Kelgusida E-7 kabi ish vizalariga o'tish jarayonida muhim bosqich sifatida qaraladi.",
+    checklist: [
+      'Bitiruvni tasdiqlovchi hujjat (diplom yoki ma`lumotnoma)',
+      "Avvalgi viza va ARC ma'lumotlari",
+      "Faol ish qidiruv rejasi (CV, cover letter, reja)",
+      "Moliyaviy barqarorlikni ko'rsatuvchi hujjatlar",
+    ],
+    warningTitle: 'Muhim ogohlantirish',
+    warningDescription:
+      "D-10 vaqtinchalik viza bo'lgani uchun ish qidiruv faoliyati hujjatlar bilan isbotlangan bo'lishi kerak.",
+    steps: [
+      {
+        title: "Talablarni tekshirish",
+        description: "Bitiruv holati, avvalgi viza turi va ariza muddatlarini migratsiya mezonlari bo'yicha tekshiring.",
+      },
+      {
+        title: 'Hujjatlarni tayyorlash',
+        description: "CV, portfolio, ish reja va moliyaviy hujjatlarni bir paketga tayyorlang.",
+      },
+      {
+        title: 'Migratsiyaga ariza',
+        description: "Online navbat olib, immigration ofisida D-10 ga o'tish yoki uzaytirish arizasini topshiring.",
+      },
+      {
+        title: "Ish topish va o'tish",
+        description: "Ish taklifi olgach E-7 kabi ish vizasiga o'tish jarayonini darhol boshlang.",
+      },
     ],
   },
   'e-7': {
-    title: 'E-7 — Professional ishchi vizasi',
-    subtitle: 'Kompaniya bilan rasmiy shartnoma talabi',
-    summary: [
-      'E-7 viza Koreyada malakali mutaxassis sifatida rasmiy ish faoliyatini olib borish imkonini beradi.',
-      "Bu viza ko'pincha IT, muhandislik, ilm-fan, ta'lim va boshqa yuqori malaka talab qilinadigan sohalarda qo'llaniladi.",
+    categoryLabel: 'Visa Category',
+    title: 'E-7 - Professional ishchi vizasi',
+    heroDescription:
+      "Koreyada malakali mutaxassis sifatida rasmiy ish faoliyatini boshlash uchun ish beruvchi homiyligidagi asosiy viza turi.",
+    heroImage:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuAF_arXmESAuR8LjY1_G59-CIcd0LnnLhWcR28Q4BeyiGg8cPNYss3ZSM1bXJg73JC3byxJp3PJx_4L9ArakeIgVYU704PlHh8jUFAmQZnn3pfqTHccy3CadwXku_uYYu8NnRhp1JsCp5gRUNRUXys-2i8ZXpTr5OVHb6a4NVi76TpQxDCwWrOH7YkNs9cKxHI6MErjri2HquIhf51qXVx607cKGNiBVLlKVpWiPE74Va0qTAGTT3iS-jYyrt59Pg78GPTX-zLpRPo',
+    quickFacts: [
+      { label: 'Muddat', value: '1-3 yil' },
+      { label: 'Narx', value: '120,000 KRW' },
+      { label: 'Yangilash', value: 'Shartnoma asosida' },
+      { label: 'Ishlash', value: 'To`liq vaqt' },
     ],
-    bullets: [
-      'Talab etiladigan minimal maosh va malaka mezonlari mavjud.',
-      'Ish beruvchi kompaniya migratsiya xizmatida ro‘yxatdan o‘tgan bo‘lishi kerak.',
-      "Uzoq muddatli istiqbol uchun doimiy yashash (F-seriya vizalar) yo'nalishiga olib borishi mumkin.",
-      'Ko‘pincha oila a’zolarini ham viza orqali olib kelish huquqini beradi.',
+    checklist: [
+      'Ish beruvchi bilan rasmiy mehnat shartnomasi',
+      'Diplom va malaka sertifikatlari',
+      "Kompaniya ro'yxatdan o'tganligini tasdiqlovchi hujjatlar",
+      'Kasbiy tajriba yoki portfolio dalillari',
+    ],
+    warningTitle: 'Muhim ogohlantirish',
+    warningDescription:
+      "Lavozim, maosh va malaka talablari mos kelmasa E-7 rad etilishi mumkin. Ish beruvchi hujjatlari to'liq bo'lishi shart.",
+    steps: [
+      {
+        title: 'Ish taklifini olish',
+        description: "Rasmiy kompaniyadan lavozim tavsifi aniq ko'rsatilgan offer va shartnoma oling.",
+      },
+      {
+        title: 'Malaka mosligini tekshirish',
+        description: 'Diplom, tajriba va lavozim E-7 klassifikatsiyasiga mos kelishini oldindan tahlil qiling.',
+      },
+      {
+        title: 'Ariza paketi topshirish',
+        description:
+          "Ish beruvchi va xodim hujjatlari bilan migratsiya bo'limiga ariza yuborilib, ko'rib chiqish jarayoni boshlanadi.",
+      },
+      {
+        title: 'Viza rasmiylashtirish',
+        description: "Tasdiqdan so'ng viza beriladi va to'liq vaqt ishlash huquqi kuchga kiradi.",
+      },
     ],
   },
 }
@@ -78,30 +169,88 @@ export default async function VisaDetailPage({ params }: VisaDetailPageProps) {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-5xl px-6 py-28 font-body text-on-surface md:px-8">
-        <header className="mb-10 md:mb-12">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-[#00236f]">Viza qo&apos;llanmasi</p>
-          <h1 className="mb-3 font-headline text-4xl font-bold tracking-tight md:text-5xl">{config.title}</h1>
-          <p className="text-base text-on-surface-variant md:text-lg">{config.subtitle}</p>
-        </header>
+      <main className="bg-surface text-on-surface">
+        <section className="relative overflow-hidden px-8 pb-32 pt-20">
+          <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
+            <div>
+              <span className="mb-6 inline-block rounded-full bg-secondary-container px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary">
+                {config.categoryLabel}
+              </span>
+              <h1 className="mb-8 font-headline text-5xl font-bold leading-[0.9] tracking-tighter text-primary md:text-7xl">{config.title}</h1>
+              <p className="max-w-lg text-xl font-light leading-relaxed text-on-surface-variant">{config.heroDescription}</p>
+            </div>
 
-        <section className="mb-10 space-y-4 text-sm leading-relaxed text-on-surface-variant md:text-base">
-          {config.summary.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
+            <div className="relative h-[400px] overflow-hidden rounded-3xl shadow-2xl">
+              <Image
+                src={config.heroImage}
+                alt={config.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
+            </div>
+          </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-          <h2 className="mb-4 font-headline text-xl font-semibold text-on-surface md:text-2xl">Nimalarga e&apos;tibor berish kerak?</h2>
-          <ul className="space-y-3 text-sm text-on-surface-variant md:text-base">
-            {config.bullets.map((item) => (
-              <li key={item} className="flex items-start">
-                <span className="mr-3 mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#00236f]" />
-                <span>{item}</span>
-              </li>
+        <div className="relative z-20 mx-auto -mt-16 max-w-7xl px-8">
+          <div className="grid grid-cols-2 gap-4 rounded-3xl border border-outline-variant/15 bg-surface-container-lowest p-8 shadow-[0_10px_40px_rgba(0,35,111,0.06)] md:grid-cols-4">
+            {config.quickFacts.map((fact) => (
+              <div key={fact.label} className="flex flex-col">
+                <span className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">{fact.label}</span>
+                <span className="text-xl font-bold text-primary">{fact.value}</span>
+              </div>
             ))}
-          </ul>
+          </div>
+        </div>
+
+        <section className="mx-auto grid max-w-7xl gap-16 px-8 py-32 lg:grid-cols-12">
+          <div className="space-y-8 lg:col-span-4">
+            <div className="sticky top-28">
+              <h3 className="mb-8 px-2 font-headline text-2xl font-bold text-primary">Hujjatlar ro&apos;yxati</h3>
+              <div className="space-y-6 rounded-2xl bg-surface-container-low p-8">
+                {config.checklist.map((item) => (
+                  <label key={item} className="group flex cursor-pointer items-start gap-4">
+                    <input type="checkbox" className="mt-1 h-5 w-5 rounded border-outline-variant text-primary focus:ring-primary" />
+                    <span className="font-medium text-on-surface transition-colors group-hover:text-primary">{item}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="mt-8 flex gap-4 rounded-2xl bg-tertiary-fixed p-6">
+                <span className="material-symbols-outlined text-on-tertiary-fixed-variant">warning</span>
+                <div>
+                  <h4 className="mb-1 font-bold text-on-tertiary-fixed">{config.warningTitle}</h4>
+                  <p className="text-sm leading-snug text-on-tertiary-fixed-variant">{config.warningDescription}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-8">
+            <h2 className="mb-12 font-headline text-4xl font-bold text-primary">Viza olish bosqichlari</h2>
+            <div className="relative space-y-12 before:absolute before:bottom-4 before:left-8 before:top-4 before:w-px before:bg-outline-variant/30">
+              {config.steps.map((step, index) => (
+                <div key={step.title} className="group relative pl-24">
+                  <div className="absolute left-0 top-0 flex h-16 w-16 items-center justify-center rounded-full border-4 border-surface bg-surface-container-highest text-2xl font-bold text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-white">
+                    {index + 1}
+                  </div>
+                  <h3 className="mb-3 font-headline text-2xl font-bold text-primary">{step.title}</h3>
+                  <p className="leading-relaxed text-on-surface-variant">{step.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
+
+        <VisaArticlesSection className="rounded-none bg-surface-container-low py-24" />
+
+        <JoinCTA
+          variant="plain"
+          eyebrow="Viza yordami"
+          title="Savolingiz bormi?"
+          description="BUSA jamoasi sizga D-2, D-10 va E-7 vizalari bo'yicha amaliy yo'l-yo'riq beradi."
+        />
       </main>
       <Footer />
     </>

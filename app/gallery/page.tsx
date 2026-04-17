@@ -1,162 +1,115 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import Footer from '@/components/layout/Footer'
 import Navbar from '@/components/layout/Navbar'
-import Image from 'next/image'
+import { GALLERY_PHOTOS } from '@/lib/constants/gallery'
 
-interface GalleryItem {
-  id: string
-  title: string
-  badge: string
-  src: string
-  alt: string
-  year: string
-  category: 'navruz' | 'trip' | 'book-club' | 'speaking-club' | 'cultural' | 'gala'
-}
+type YearFilter = 'barchasi' | 2025 | 2024 | 2023 | 2022 | 2021
+type EventFilter = 'barchasi' | 'navruz' | 'trips' | 'bookclub' | 'speakingclub'
 
-const GALLERY_ITEMS: GalleryItem[] = [
-  {
-    id: 'navruz-2024',
-    title: "Bahoriy bayram shukuhi",
-    badge: "Navro'z 2024",
-    year: '2024',
-    category: 'navruz',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCYC0u4Ep-EgL5tMeMytP2hgoOPMJXCJCuwFwG-F8jU7jXQM-x4JKATIyV9dybEclUMYgq7JGx6zl1DHbfMAB00OL05ysUXMUP6yJfOwromVUh-hABvsKr7PIRyUCqP1tPZYpCjZh2vuoSYk3Pr2z6IPjY163uoqPNa2m40sEfJdqqX2KKfPkgMHS01KNUiCkHYhuUy1Ss4db9qtRRz60tfVeC5PvfF7OKqNunichgxMpVnUZYdXRVJHMRRB0jTvUfOuIL9x_XhH4U',
-    alt: "Navro'z bayrami tadbirida talabalar guruhi"
-  },
-  {
-    id: 'book-club',
-    title: 'Kitobxonlar uchrashuvi',
-    badge: 'Book Club',
-    year: '2024',
-    category: 'book-club',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXDwMrOrGjWoTY4vQJuyhHWCRp4pxzmZ67kyqbcUud62QyMbwkQjwsbGPCZMlwMqaTV5nsAl69KDe4oq7kwmPSfXdIKU-YKCb8hZW3zjhTQhcuhaekmm88VlNi_Z4sh2gLwQpJuoYwzS4cCGCHbMjp_dH2sEdQ0AfR0VQdbLME8xarDeP1yMbe7ff4fX0ibB09s3h3ZRSdUqVsBnh7aaSeTkz1sKWTSvNVxAaTTnW2kx2WXMad7e87iYUKkfQ7zDyqpdtxs9xkBPI',
-    alt: "Talabalar bilan kitob klubi uchrashuvi"
-  },
-  {
-    id: 'trip-haeundae',
-    title: 'Haeundae sayohati',
-    badge: 'Trip',
-    year: '2023',
-    category: 'trip',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABDSKt6h3zxaOM2WF3KyGXSw-bxwaQqvQ2owcbdVxVMUvi05yBEqMmlj1mUCBkCK-baqFpTL_BFOfi-ieFKwFaduNHfHECEHruyZkzRV1xpr1zrRz6gS3MZqvlEwHVsTZhdwKc6tAXAdhHdW6_WFVpF0opHMOKEQlTXR07UuKZCJiFwQ16gyfOv2x1L3j1YerNUwGsSw6db0HREe2b3PcleffY1a5Ms4-oCM_9kb5VIrOvSu8gd9F8pA4xMWpFIpXT94Jh_0b0DMY',
-    alt: 'Busan Haeundae sohiliga piyoda sayohat qilayotgan talabalar'
-  },
-  {
-    id: 'osh-championship',
-    title: 'Osh chempionati',
-    badge: 'Cultural Forum',
-    year: '2023',
-    category: 'cultural',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDvRZRMkkWRv-hj1NlwwOaXlwyYFqgi9SjGoYTiOTq1MMMWYFJTnufDhzbq2w7OAfnPiIOzn-a-VycBq1VUDDB3qPp8AYHhFWObVCWOVRVY6E4LI7ZNK48pNmYENN4_t1GMMQsg0lIvYDQtJUYafcKbT4nIGoNSf1kdWWWzbrO7lo9L74Bu66AUgI88EBwOoW_4aXpjmkfpzwv3KtORUpmXoser2Sk9WXLY9dcrXJhmG3F2FXyU2jQ0ms5kC6Z8AOMpVpEPenT50xY',
-    alt: "Osh tayyorlash bo'yicha madaniy tadbir"
-  },
-  {
-    id: 'gala-night',
-    title: 'Yil yakuni tantanasi',
-    badge: 'Gala Night',
-    year: '2022',
-    category: 'gala',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCpfXaZIYTHTb4lqcEIZI1JaxhxdQeVGbA0jOOC9LpXLackvI1HztqCrPuiy_jdUR6ULNlzoyLwjeeNfhcMmlh4_dtQWq9i9iTWDRM__ciaP3oVJJK_SiuBOmHs434LwPFfeVNfk0F61j_USPqiPlPrfFX9LVpIwiYxnvPz0uzbXgmXqNKo9Rb-eUTKEfz2E8hSRv5MioK7Vq1vb21Y9MrjD888ZBPZLlquZ_z3I0m_N4S1v99DXucCJTZaubhcX_LiOEhzuhqzbMM',
-    alt: 'Rasmiy gala kechasida talabalar'
-  },
-  {
-    id: 'speaking-club',
-    title: "Notiqlik san'ati",
-    badge: 'Speaking Club',
-    year: '2022',
-    category: 'speaking-club',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDkqfeKJrRXXHYbDZl8zC0G8UZdYn9t88RJSE0pbWWFQCwYTDCookY2clgNjur5ZkHdVen6l6_CZARizzxx8gqfbV7WM3lMTs8nsyhZkld_7SG_0CwyJEzmmljrHyO1WMMofJy-4mVOJ86IdMhRD8AEJABupMgcnUC0-Co45uthE4SCKjMnc2m6rEsDH4OKatKLZLCsQfJ7fqh8iNtlGIJbElsXiBEAod0dDwRGFFTsKsV3DRa7-qLauYV5wY-1aUarnNG6FxB_WF4',
-    alt: 'Speaking club tadbirida nutq so‘zlayotgan talaba'
-  }
+const YEAR_FILTERS: readonly YearFilter[] = ['barchasi', 2025, 2024, 2023, 2022, 2021]
+const EVENT_FILTERS: ReadonlyArray<{ id: EventFilter; label: string }> = [
+  { id: 'barchasi', label: 'BARCHASI' },
+  { id: 'navruz', label: "NAVRO'Z" },
+  { id: 'trips', label: 'TRIPS' },
+  { id: 'bookclub', label: 'BOOK CLUB' },
+  { id: 'speakingclub', label: 'SPEAKING CLUB' },
 ]
 
-export default function GalleryPage() {
+function getPillClass(isActive: boolean): string {
+  return isActive
+    ? 'bg-[#00236f] text-white px-[16px] py-[8px] rounded-full text-[14px] font-normal transition duration-200'
+    : 'bg-transparent text-[#00236f] border border-[#00236f]/25 px-[16px] py-[8px] rounded-full text-[14px] font-normal hover:border-[#00236f] hover:bg-[#00236f]/5 transition duration-200'
+}
+
+export function GalleryPage() {
+  const [activeYear, setActiveYear] = useState<YearFilter>('barchasi')
+  const [activeEvent, setActiveEvent] = useState<EventFilter>('barchasi')
+  const [visible, setVisible] = useState<number>(9)
+
+  const filteredPhotos = useMemo(() => {
+    return GALLERY_PHOTOS.filter((photo) => {
+      const yearMatch = activeYear === 'barchasi' ? true : photo.year === activeYear
+      const eventMatch = activeEvent === 'barchasi' ? true : photo.event === activeEvent
+      return yearMatch && eventMatch
+    })
+  }, [activeYear, activeEvent])
+
+  useEffect(() => {
+    setVisible(9)
+  }, [activeYear, activeEvent])
+
+  const visiblePhotos = filteredPhotos.slice(0, visible)
+
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-7xl bg-background px-8 pb-24 pt-32 font-body text-on-background">
-        <header className="mb-20">
-          <h1 className="mb-6 font-headline text-7xl font-bold leading-none tracking-tighter text-primary md:text-9xl">Galereya</h1>
-          <p className="max-w-2xl text-lg font-light leading-relaxed text-outline md:text-xl">
-            BUSA ning barcha lahzalari. Talabalar hamjamiyati hayotidan eng yorqin kadrlar bir joyda jamlangan.
-          </p>
-        </header>
-
-        <section className="mb-12 space-y-8 rounded-2xl bg-surface-container-low p-6 shadow-sm md:p-8">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="mr-4 text-xs font-label uppercase tracking-[0.24em] text-outline">Yillar</span>
-            <button className="rounded-full bg-on-surface px-5 py-2 text-xs font-semibold uppercase tracking-wide text-surface transition-colors hover:bg-on-surface/90">
-              Barchasi
-            </button>
-            <button className="rounded-full bg-surface-container px-5 py-2 text-xs font-semibold uppercase tracking-wide text-on-surface hover:bg-surface-container-high">
-              2025
-            </button>
-            <button className="rounded-full bg-surface-container px-5 py-2 text-xs font-semibold uppercase tracking-wide text-on-surface hover:bg-surface-container-high">
-              2024
-            </button>
-            <button className="rounded-full bg-surface-container px-5 py-2 text-xs font-semibold uppercase tracking-wide text-on-surface hover:bg-surface-container-high">
-              2023
-            </button>
-            <button className="rounded-full bg-surface-container px-5 py-2 text-xs font-semibold uppercase tracking-wide text-on-surface hover:bg-surface-container-high">
-              2022
-            </button>
-            <button className="rounded-full bg-surface-container px-5 py-2 text-xs font-semibold uppercase tracking-wide text-on-surface hover:bg-surface-container-high">
-              2021
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-6 border-t border-outline-variant pt-6">
-            <span className="mr-4 text-xs font-label uppercase tracking-[0.24em] text-outline">Tadbirlar</span>
-            <button className="border-b-2 border-on-surface pb-1 text-xs font-bold uppercase tracking-[0.2em] text-on-surface">
-              Barchasi
-            </button>
-            <button className="pb-1 text-xs font-semibold uppercase tracking-[0.2em] text-outline transition-colors hover:text-on-surface">
-              Navro'z
-            </button>
-            <button className="pb-1 text-xs font-semibold uppercase tracking-[0.2em] text-outline transition-colors hover:text-on-surface">
-              Trips
-            </button>
-            <button className="pb-1 text-xs font-semibold uppercase tracking-[0.2em] text-outline transition-colors hover:text-on-surface">
-              Book Club
-            </button>
-            <button className="pb-1 text-xs font-semibold uppercase tracking-[0.2em] text-outline transition-colors hover:text-on-surface">
-              Speaking Club
-            </button>
+      <main className="bg-white text-[#1d1d1f]">
+        <section className="mx-auto mb-20 max-w-[1200px] px-[24px] pt-24 md:pt-28">
+          <div className="max-w-3xl">
+            <h1 className="mb-6 font-headline text-7xl font-bold leading-none tracking-tighter text-primary md:text-9xl">Galereya</h1>
+            <p className="max-w-2xl text-lg font-light leading-relaxed text-outline md:text-xl">
+              BUSA tarixidagi eng yorqin lahzalarni tadbirlar va yillar kesimida tomosha qiling.
+            </p>
           </div>
         </section>
 
-        <section className="bg-[#f5f5f7]">
-          <div className="columns-1 gap-6 md:columns-2 lg:columns-3 xl:columns-4">
-            {GALLERY_ITEMS.map((item) => (
-              <article
-                key={item.id}
-                className="mb-6 break-inside-avoid overflow-hidden rounded-xl bg-surface-container-low shadow-sm ring-1 ring-outline-variant/40 transition-transform duration-300 hover:-translate-y-1 hover:shadow-md"
-              >
-                <div className="relative">
-                  <Image
-                    src={item.src}
-                    alt={item.alt}
-                    width={900}
-                    height={1200}
-                    className="h-auto w-full object-cover"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-                  <div className="pointer-events-none absolute inset-0 flex flex-col justify-end p-5">
-                    <span className="mb-1 text-[10px] font-label font-semibold uppercase tracking-[0.18em] text-primary-fixed-dim">
-                      {item.badge}
-                    </span>
-                    <h3 className="text-base font-headline font-semibold tracking-tight text-surface md:text-lg">
-                      {item.title}
-                    </h3>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+        <section className="sticky top-[48px] z-40 border-b border-[rgba(0,0,0,0.06)] bg-white/90 py-[24px] backdrop-blur-md">
+          <div className="mx-auto max-w-[1200px] px-[24px]">
+            <div className="flex flex-wrap items-center gap-[12px]">
+              <span className="mr-[8px] text-[11px] font-normal uppercase tracking-[0.12em] text-[#86868b]">YILLAR</span>
+              {YEAR_FILTERS.map((year) => (
+                <button key={year} type="button" className={getPillClass(activeYear === year)} onClick={() => setActiveYear(year)}>
+                  {year === 'barchasi' ? 'BARCHASI' : year}
+                </button>
+              ))}
+            </div>
 
-          <div className="mt-14 flex justify-center">
-            <button className="text-[#00236f] text-[17px] font-normal hover:underline underline-offset-4 transition duration-200">
-              Ko&apos;proq yuklash
-            </button>
+            <div className="my-[16px] h-[1px] w-full bg-[rgba(0,0,0,0.05)]" />
+
+            <div className="flex flex-wrap items-center gap-[12px]">
+              <span className="mr-[8px] text-[11px] font-normal uppercase tracking-[0.12em] text-[#86868b]">TADBIRLAR</span>
+              {EVENT_FILTERS.map((eventItem) => (
+                <button key={eventItem.id} type="button" className={getPillClass(activeEvent === eventItem.id)} onClick={() => setActiveEvent(eventItem.id)}>
+                  {eventItem.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-[48px] px-[24px] pb-[96px]">
+          <div className="mx-auto max-w-[1200px]">
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-[16px] space-y-[16px]">
+              {visiblePhotos.map((photo) => (
+                <article key={photo.id} className="break-inside-avoid group relative cursor-pointer">
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={800}
+                    height={600}
+                    className="w-full h-auto object-cover rounded-[16px] group-hover:scale-[1.02] transition-transform duration-500"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                  <div className="absolute inset-0 rounded-[16px] bg-gradient-to-t from-[#00236f]/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-[16px]">
+                    <p className="text-white text-[14px] font-semibold">{photo.eventName}</p>
+                    <span className="text-white/70 text-[11px] mt-[2px]">{photo.year}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            {filteredPhotos.length > visible ? (
+              <button
+                type="button"
+                onClick={() => setVisible((prev) => prev + 9)}
+                className="mx-auto mt-[48px] block text-[17px] font-normal text-[#00236f] underline-offset-4 transition duration-200 hover:underline"
+              >
+                Ko&apos;proq yuklash
+              </button>
+            ) : null}
           </div>
         </section>
       </main>
@@ -164,3 +117,5 @@ export default function GalleryPage() {
     </>
   )
 }
+
+export default GalleryPage

@@ -26,7 +26,7 @@ function ProjectEditorialLayout({ detail }: ProjectEditorialLayoutProps) {
       />
       <div className="mx-auto max-w-7xl px-8 pb-8 md:px-20">
         <Link
-          className="inline-flex font-headline text-sm font-bold text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:text-primary-container"
+          className="inline-flex items-center rounded-xl border border-primary/20 bg-primary/5 px-5 py-3 font-headline text-base font-bold text-primary transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:shadow-[0_8px_24px_rgba(0,35,111,0.14)]"
           href={ROUTES.PROJECTS}
         >
           ← Barcha loyihalar

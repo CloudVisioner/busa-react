@@ -9,7 +9,7 @@ function VisaHero({ className }: VisaHeroProps) {
   return (
     <div className={cn('mb-20', className)}>
       <div className="max-w-3xl">
-        <h1 className="mb-6 font-headline text-7xl font-bold leading-none tracking-tighter text-primary md:text-9xl">Viza bo&apos;limi</h1>
+        <h1 className="mb-6 font-headline text-7xl font-bold leading-none tracking-tighter text-primary md:text-9xl">Viza</h1>
         <p className="mb-8 max-w-2xl text-lg font-light leading-relaxed text-outline md:text-xl">
           Koreyadagi har bir viza — oddiy tilda. Talabalar va yosh mutaxassislar uchun aniq, tushunarli ma&apos;lumotlar.
         </p>

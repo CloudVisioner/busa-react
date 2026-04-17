@@ -21,7 +21,7 @@ function ProjectCard({ project, className }: ProjectCardProps) {
       )}
     >
       <Link
-        className="flex flex-1 flex-col outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a8a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f8f9fa]"
+        className="flex flex-1 flex-col outline-none focus-visible:ring-2 focus-visible:ring-[#00236f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f8f9fa]"
         href={href}
       >
         <span className="relative block h-64 w-full overflow-hidden">
@@ -37,7 +37,7 @@ function ProjectCard({ project, className }: ProjectCardProps) {
         <span className="flex flex-1 flex-col bg-white p-8">
           <span className="mb-3 font-headline text-2xl font-bold tracking-tight text-slate-900">{project.title}</span>
           <span className="mb-6 line-clamp-2 flex-1 text-left font-body text-[#44474e]">{project.summary}</span>
-          <span className="group/link inline-flex items-center gap-2 font-headline font-bold text-[#1e3a8a]">
+          <span className="group/link inline-flex items-center gap-2 font-headline font-bold text-[#00236f]">
             Learn More
             <FiArrowRight className="h-5 w-5 shrink-0 transition-transform duration-300 group-hover/link:translate-x-1" aria-hidden />
           </span>

@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Galaxy from '@/components/sections/Galaxy'
 import { ROUTES } from '@/lib/constants/routes'
 import { cn } from '@/lib/utils/cn'
 
@@ -30,22 +29,7 @@ export function JoinCTA({
     <section className={cn('relative overflow-hidden bg-[#f5f5f7] px-6 py-20 md:py-24', className)}>
       {!isPlain && (
         <>
-          <div className="absolute inset-0">
-            <Galaxy
-              mouseRepulsion
-              mouseInteraction
-              density={1}
-              glowIntensity={0.3}
-              saturation={0}
-              hueShift={140}
-              twinkleIntensity={0.3}
-              rotationSpeed={0.1}
-              repulsionStrength={2}
-              autoCenterRepulsion={0}
-              starSpeed={0.5}
-              speed={1}
-            />
-          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,35,111,0.12),transparent_55%)]" />
           <div className="pointer-events-none absolute inset-0 bg-white/72" />
         </>
       )}

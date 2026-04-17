@@ -12,8 +12,8 @@ interface NavbarProps {
 
 const NAV_ITEMS = [
   { href: ROUTES.HOME, label: 'Asosiy' },
-  { href: ROUTES.ABOUT, label: 'Nega BUSA?' },
-  { href: ROUTES.EVENTS, label: 'Statistika' },
+  { href: ROUTES.ABOUT, label: 'BUSA' },
+  { href: ROUTES.EVENTS, label: 'Tadbirlar' },
   { href: ROUTES.PROJECTS, label: 'Loyihalar' },
   { href: ROUTES.GALLERY, label: 'Galereya' },
   { href: ROUTES.VISA, label: 'Viza' },
@@ -52,7 +52,7 @@ export function Navbar({ className }: NavbarProps) {
 
         <div className="flex items-center justify-self-end gap-3">
           <Link
-            className="inline-flex rounded-lg bg-[#E53935] px-6 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-white shadow-sm transition-all duration-300 hover:bg-[#C62828] md:px-7 md:py-3 md:text-xs"
+            className="inline-flex rounded-lg bg-[#dc2626] px-6 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-white shadow-sm transition-all duration-300 hover:bg-[#b91c1c] md:px-7 md:py-3 md:text-xs"
             href={ROUTES.HOME}
           >
             A&apos;ZO BO&apos;LISH

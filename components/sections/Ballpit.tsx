@@ -1,7 +1,5 @@
 'use client'
 
-import { gsap } from 'gsap'
-import { Observer } from 'gsap/Observer'
 import React, { useEffect, useRef } from 'react'
 import {
   ACESFilmicToneMapping,
@@ -27,8 +25,6 @@ import {
   type WebGLRendererParameters,
 } from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
-
-gsap.registerPlugin(Observer)
 
 interface ThreeConfig {
   canvas?: HTMLCanvasElement
@@ -567,7 +563,6 @@ class BallMesh extends InstancedMesh {
       } else {
         sample.copy(white)
       }
-
       this.setColorAt(idx, sample)
     }
 

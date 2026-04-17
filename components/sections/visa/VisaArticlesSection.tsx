@@ -10,6 +10,7 @@ interface VisaArticlesSectionProps {
 
 interface VisaArticle {
   title: string
+  slug: string
   type: string
   timeAgo: string
   readTime: string
@@ -19,6 +20,7 @@ interface VisaArticle {
 const ARTICLES: VisaArticle[] = [
   {
     title: "D-2 vizasini qanday uzaytirish mumkin",
+    slug: 'd-2-vizasini-qanday-uzaytirish-mumkin',
     type: 'D-2',
     timeAgo: '2 kun oldin',
     readTime: '5 daqiqa',
@@ -26,6 +28,7 @@ const ARTICLES: VisaArticle[] = [
   },
   {
     title: 'E-7 uchun kerakli hujjatlar',
+    slug: 'd-2-talabalar-uchun-ishlash-ruxsatnomasi',
     type: 'E-7',
     timeAgo: '1 hafta oldin',
     readTime: '4 daqiqa',
@@ -33,6 +36,7 @@ const ARTICLES: VisaArticle[] = [
   },
   {
     title: "D-10 dan E-7 ga o'tish mumkinmi?",
+    slug: 'd-2-dan-d-10-ga-otish-tartibi',
     type: 'D-10',
     timeAgo: '3 kun oldin',
     readTime: '3 daqiqa',
@@ -67,7 +71,7 @@ function VisaArticlesSection({ className }: VisaArticlesSectionProps) {
           {ARTICLES.map((article, index) => (
             <div key={article.title} className={index === 0 ? '' : ''}>
               <Link
-                href={ROUTES.VISA}
+                href={`${ROUTES.VISA}/articles/${article.slug}`}
                 className="group flex cursor-pointer items-center justify-between rounded-[12px] px-[24px] py-[20px] transition duration-150 hover:bg-[#f5f5f7]"
               >
                 <div className="flex-1">

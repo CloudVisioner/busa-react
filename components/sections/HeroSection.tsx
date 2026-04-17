@@ -41,7 +41,7 @@ export function HeroSection({ className }: HeroSectionProps) {
             Batafsil ma&apos;lumot
           </Link>
           <Link
-            className="rounded-full border border-[#00236f]/35 px-7 py-3 text-sm font-bold text-[#00236f] transition hover:bg-[#00236f]/5"
+            className="rounded-full border border-white/80 bg-white px-7 py-3 text-sm font-bold text-black transition hover:bg-white/90"
             href={ROUTES.ABOUT}
           >
             Bizga qo&apos;shiling

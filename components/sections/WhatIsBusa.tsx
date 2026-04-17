@@ -22,19 +22,19 @@ export function WhatIsBusa({ className }: WhatIsBusaProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
         <div className="flex flex-col gap-8 lg:pr-6">
           <span className="inline-flex w-fit rounded-full bg-primary/10 px-5 py-2.5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary md:text-base">
-            BUSA
+            Biz haqimizda
           </span>
 
           <div>
             <h2 className="font-headline text-5xl font-bold leading-[1.05] tracking-tight text-primary md:text-6xl">
-              Vatanimizni Koreyada tamsil etuvchi kuch.
+              Koreyadagi o&apos;zbek talabalar hamjamiyati.
             </h2>
             <div className="mt-6 h-1 w-16 rounded-full bg-primary" />
           </div>
 
           <p className="max-w-xl text-lg leading-8 text-on-surface-variant md:text-xl">
-            BUSA — bu shunchaki talabalar uyushmasi emas, balki Busan shahridagi o&apos;zbek yoshlarining o&apos;zaro tajriba almashish,
-            yordam berish va vatanimiz ravnaqi yo&apos;lida yangi loyihalarni amalga oshirish maskanidir.
+            Bu hamjamiyat Busan shahridagi o&apos;zbek talabalarini birlashtirib, yangi kelganlarga moslashuvda yordam beradi, ta&apos;lim va
+            karyera bo&apos;yicha amaliy yo&apos;naltirish beradi hamda hamkorlikdagi loyihalar orqali professional va ijtimoiy o&apos;sishni qo&apos;llab-quvvatlaydi.
           </p>
 
           <Link

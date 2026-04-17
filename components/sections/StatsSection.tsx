@@ -16,7 +16,7 @@ export function StatsSection({ className }: StatsSectionProps) {
 
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mx-auto mb-10 max-w-2xl text-center md:mb-12">
-          <p className="mb-3 font-label text-sm font-extrabold uppercase tracking-[0.16em] text-on-primary-fixed-variant md:text-base">BUSA statistikasi</p>
+          <p className="mb-3 font-label text-sm font-extrabold uppercase tracking-[0.16em] text-[#00236f] md:text-base">BUSA statistikasi</p>
           <h2 className="mb-4 font-headline text-4xl font-bold tracking-tight text-on-surface md:text-5xl">Ishonchli o&apos;sish, real natijalar</h2>
           <p className="text-sm leading-7 text-on-surface-variant md:text-base">
             BUSA platformasi orqali talabalar o&apos;rtasida professional tarmoq, tadbirlar sifati va universitetlar bilan hamkorlik
@@ -27,16 +27,16 @@ export function StatsSection({ className }: StatsSectionProps) {
         <div className="mx-auto max-w-5xl rounded-[2rem] border border-black/5 bg-white/85 p-8 shadow-[0_18px_45px_rgba(25,28,30,0.12)] backdrop-blur-sm md:p-12">
           <div className="grid grid-cols-1 gap-14 text-center md:grid-cols-3">
             <div className="space-y-3">
-              <div className="font-headline text-6xl font-black text-on-surface md:text-8xl">700+</div>
-              <div className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Ro&apos;yxatdan o&apos;tgan a&apos;zolar</div>
+              <div className="font-headline text-6xl font-black text-[#00236f] md:text-8xl">700+</div>
+              <div className="text-[13px] font-normal uppercase tracking-[0.12em] text-[#6e6e73]">Ro&apos;yxatdan o&apos;tgan a&apos;zolar</div>
             </div>
             <div className="space-y-3">
-              <div className="font-headline text-6xl font-black text-on-surface md:text-8xl">80+</div>
-              <div className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Yakunlangan tadbirlar</div>
+              <div className="font-headline text-6xl font-black text-[#00236f] md:text-8xl">80+</div>
+              <div className="text-[13px] font-normal uppercase tracking-[0.12em] text-[#6e6e73]">Yakunlangan tadbirlar</div>
             </div>
             <div className="space-y-3">
-              <div className="font-headline text-6xl font-black text-on-surface md:text-8xl">15+</div>
-              <div className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Akademik hamkorlar</div>
+              <div className="font-headline text-6xl font-black text-[#00236f] md:text-8xl">15+</div>
+              <div className="text-[13px] font-normal uppercase tracking-[0.12em] text-[#6e6e73]">Akademik hamkorlar</div>
             </div>
           </div>
         </div>

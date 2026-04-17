@@ -1,5 +1,4 @@
 import AboutHero from '@/components/sections/about/AboutHero'
-import FounderSpotlight from '@/components/sections/about/FounderSpotlight'
 import JoinCTA from '@/components/sections/about/JoinCTA'
 import OurStory from '@/components/sections/about/OurStory'
 import TeamSection from '@/components/sections/about/TeamSection'
@@ -17,9 +16,8 @@ export default function AboutPage() {
         <OurStory />
         <Timeline />
         <Values />
-        <FounderSpotlight />
         <TeamSection />
-        <JoinCTA />
+        <JoinCTA variant="plain" />
         <Footer />
       </main>
     </>

@@ -28,26 +28,26 @@ interface MarqueeSectionProps {
 }
 
 const LOGO_ROW_ONE: LogoItem[] = [
-  { name: 'Google', icon: SiGoogle, colorClass: 'hover:text-[#4285F4]' },
-  { name: 'Apple', icon: SiApple, colorClass: 'hover:text-[#000000]' },
-  { name: 'Samsung', icon: SiSamsung, colorClass: 'hover:text-[#1428A0]' },
-  { name: 'Tesla', icon: SiTesla, colorClass: 'hover:text-[#CC0000]' },
-  { name: 'Meta', icon: SiMeta, colorClass: 'hover:text-[#0467DF]' },
-  { name: 'Netflix', icon: SiNetflix, colorClass: 'hover:text-[#E50914]' },
+  { name: 'Google', icon: SiGoogle, colorClass: 'text-[#4285F4]' },
+  { name: 'Apple', icon: SiApple, colorClass: 'text-[#000000]' },
+  { name: 'Samsung', icon: SiSamsung, colorClass: 'text-[#1428A0]' },
+  { name: 'Tesla', icon: SiTesla, colorClass: 'text-[#CC0000]' },
+  { name: 'Meta', icon: SiMeta, colorClass: 'text-[#0467DF]' },
+  { name: 'Netflix', icon: SiNetflix, colorClass: 'text-[#E50914]' },
 ]
 
 const LOGO_ROW_TWO: LogoItem[] = [
-  { name: 'Spotify', icon: SiSpotify, colorClass: 'hover:text-[#1DB954]' },
-  { name: 'Airbnb', icon: SiAirbnb, colorClass: 'hover:text-[#FF5A5F]' },
-  { name: 'Nvidia', icon: SiNvidia, colorClass: 'hover:text-[#76B900]' },
-  { name: 'Uber', icon: SiUber, colorClass: 'hover:text-[#000000]' },
-  { name: 'GitHub', icon: SiGithub, colorClass: 'hover:text-[#181717]' },
-  { name: 'Stripe', icon: SiStripe, colorClass: 'hover:text-[#635BFF]' },
+  { name: 'Spotify', icon: SiSpotify, colorClass: 'text-[#1DB954]' },
+  { name: 'Airbnb', icon: SiAirbnb, colorClass: 'text-[#FF5A5F]' },
+  { name: 'Nvidia', icon: SiNvidia, colorClass: 'text-[#76B900]' },
+  { name: 'Uber', icon: SiUber, colorClass: 'text-[#000000]' },
+  { name: 'GitHub', icon: SiGithub, colorClass: 'text-[#181717]' },
+  { name: 'Stripe', icon: SiStripe, colorClass: 'text-[#635BFF]' },
 ]
 
 export function MarqueeSection({ className }: MarqueeSectionProps) {
   const logoLoop = [...LOGO_ROW_ONE, ...LOGO_ROW_TWO]
-  const baseIconClass = 'h-10 w-10 cursor-pointer text-slate-400 opacity-55 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0'
+  const baseIconClass = 'h-10 w-10 cursor-pointer opacity-90 transition-all duration-300 hover:opacity-100'
 
   return (
     <section className={cn('bg-surface py-20 md:py-24', className)}>
