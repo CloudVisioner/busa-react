@@ -17,7 +17,7 @@ export function ProjectsSection({ className }: ProjectsSectionProps) {
             <h2 className="mt-4 font-headline text-4xl font-bold text-primary md:text-5xl">Biz amalga oshirayotgan ishlar</h2>
           </div>
           <Link
-            className="hidden rounded-full border border-primary/30 px-5 py-2.5 font-bold text-primary transition-colors hover:bg-primary hover:text-white md:block"
+            className="hidden rounded-full border border-[#00236f]/35 px-7 py-3 text-sm font-bold text-[#00236f] transition hover:bg-[#00236f]/5 md:block"
             href={ROUTES.PROJECTS}
           >
             Hammasini ko&apos;rish

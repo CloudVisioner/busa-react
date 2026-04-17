@@ -5,21 +5,23 @@ import OurStory from '@/components/sections/about/OurStory'
 import TeamSection from '@/components/sections/about/TeamSection'
 import Timeline from '@/components/sections/about/Timeline'
 import Values from '@/components/sections/about/Values'
-import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import Navbar from '@/components/layout/Navbar'
 
 export default function AboutPage() {
   return (
-    <main>
+    <>
       <Navbar />
-      <AboutHero />
-      <OurStory />
-      <Timeline />
-      <Values />
-      <FounderSpotlight />
-      <TeamSection />
-      <JoinCTA />
-      <Footer />
-    </main>
+      <main className="overflow-x-clip bg-surface font-body text-on-surface">
+        <AboutHero />
+        <OurStory />
+        <Timeline />
+        <Values />
+        <FounderSpotlight />
+        <TeamSection />
+        <JoinCTA />
+        <Footer />
+      </main>
+    </>
   )
 }

@@ -22,7 +22,7 @@ export function WhatIsBusa({ className }: WhatIsBusaProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
         <div className="flex flex-col gap-8 lg:pr-6">
           <span className="inline-flex w-fit rounded-full bg-primary/10 px-5 py-2.5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary md:text-base">
-            BUSA NIMA?
+            BUSA
           </span>
 
           <div>

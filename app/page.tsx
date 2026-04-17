@@ -9,15 +9,17 @@ import WhyBusa from '@/components/sections/WhyBusa'
 
 export default function HomePage() {
   return (
-    <main className="overflow-x-hidden bg-surface font-body text-on-surface">
+    <>
       <Navbar />
-      <HeroSection />
-      <MarqueeSection />
-      <WhatIsBusa />
-      <WhyBusa />
-      <ProjectsSection />
-      <StatsSection />
-      <Footer />
-    </main>
+      <main className="overflow-x-clip bg-surface font-body text-on-surface">
+        <HeroSection />
+        <MarqueeSection />
+        <WhatIsBusa />
+        <WhyBusa />
+        <ProjectsSection />
+        <StatsSection />
+        <Footer />
+      </main>
+    </>
   )
 }

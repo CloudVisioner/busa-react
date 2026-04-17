@@ -25,19 +25,22 @@ export function Navbar({ className }: NavbarProps) {
   return (
     <header className={cn('sticky top-0 z-50 w-full border-b border-black/5 bg-white/78 backdrop-blur-xl', className)}>
       <nav className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-6 font-headline tracking-tight md:h-[70px]">
-        <Link className="justify-self-start text-2xl font-bold text-blue-900 tracking-tighter" href={ROUTES.HOME}>
+        <Link className="justify-self-start text-2xl font-bold tracking-tighter text-[#E53935]" href={ROUTES.HOME}>
           BUSA
         </Link>
 
         <div className="hidden items-center gap-7 justify-self-center md:flex">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href
+            const isActive =
+              item.href === ROUTES.PROJECTS
+                ? pathname === ROUTES.PROJECTS || pathname.startsWith(`${ROUTES.PROJECTS}/`)
+                : pathname === item.href
             return (
               <Link
                 key={item.href}
                 className={cn(
                   'border-b-2 pb-1 text-sm transition-colors',
-                  isActive ? 'border-blue-700 font-semibold text-blue-700' : 'border-transparent text-slate-600 hover:text-blue-900'
+                  isActive ? 'border-primary font-semibold text-primary' : 'border-transparent text-slate-600 hover:text-primary'
                 )}
                 href={item.href}
               >
@@ -49,7 +52,7 @@ export function Navbar({ className }: NavbarProps) {
 
         <div className="flex items-center justify-self-end gap-3">
           <Link
-            className="inline-flex rounded-full bg-primary px-5 py-2 text-[11px] font-extrabold tracking-[0.12em] text-white transition-all duration-300 hover:bg-[#0854d1] md:px-6 md:py-2.5 md:text-xs"
+            className="inline-flex rounded-lg bg-[#E53935] px-6 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-white shadow-sm transition-all duration-300 hover:bg-[#C62828] md:px-7 md:py-3 md:text-xs"
             href={ROUTES.HOME}
           >
             A&apos;ZO BO&apos;LISH

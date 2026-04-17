@@ -1,1 +1,12 @@
-export default function AdminPage() { return <div>Admin</div> }
+import Footer from '@/components/layout/Footer'
+import Navbar from '@/components/layout/Navbar'
+
+export default function AdminPage() {
+  return (
+    <>
+      <Navbar />
+      <main className="min-h-[40vh] bg-surface p-8 font-body text-on-surface">Admin</main>
+      <Footer />
+    </>
+  )
+}
