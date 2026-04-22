@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
-      <main className="overflow-x-clip bg-surface font-body text-on-surface">
+      <main className="overflow-x-hidden bg-surface font-body text-on-surface">
         <HeroSection />
         <MarqueeSection />
         <WhatIsBusa />

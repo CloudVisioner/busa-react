@@ -171,16 +171,13 @@ export default async function VisaDetailPage({ params }: VisaDetailPageProps) {
       <Navbar />
       <main className="bg-surface text-on-surface">
         <section className="relative overflow-hidden px-8 pb-32 pt-20">
-          <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
+          <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-8 md:gap-12 lg:grid-cols-2">
             <div>
-              <span className="mb-6 inline-block rounded-full bg-secondary-container px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary">
-                {config.categoryLabel}
-              </span>
-              <h1 className="mb-8 font-headline text-5xl font-bold leading-[0.9] tracking-tighter text-primary md:text-7xl">{config.title}</h1>
+              <h1 className="mb-8 font-headline text-4xl font-bold leading-[0.9] tracking-tighter text-primary md:text-7xl">{config.title}</h1>
               <p className="max-w-lg text-xl font-light leading-relaxed text-on-surface-variant">{config.heroDescription}</p>
             </div>
 
-            <div className="relative h-[400px] overflow-hidden rounded-3xl shadow-2xl">
+            <div className="relative h-[240px] overflow-hidden rounded-3xl shadow-2xl md:h-[400px]">
               <Image
                 src={config.heroImage}
                 alt={config.title}
@@ -204,24 +201,24 @@ export default async function VisaDetailPage({ params }: VisaDetailPageProps) {
           </div>
         </div>
 
-        <section className="mx-auto grid max-w-7xl gap-16 px-8 py-32 lg:grid-cols-12">
+        <section className="mx-auto grid max-w-7xl gap-12 px-8 pb-8 pt-20 md:gap-16 md:py-32 lg:grid-cols-12">
           <div className="space-y-8 lg:col-span-4">
             <div className="sticky top-28">
               <h3 className="mb-8 px-2 font-headline text-2xl font-bold text-primary">Hujjatlar ro&apos;yxati</h3>
               <div className="space-y-6 rounded-2xl bg-surface-container-low p-8">
                 {config.checklist.map((item) => (
-                  <label key={item} className="group flex cursor-pointer items-start gap-4">
+                  <label key={item} className="group flex cursor-pointer items-start gap-3">
                     <input type="checkbox" className="mt-1 h-5 w-5 rounded border-outline-variant text-primary focus:ring-primary" />
-                    <span className="font-medium text-on-surface transition-colors group-hover:text-primary">{item}</span>
+                    <span className="text-[15px] font-medium text-on-surface transition-colors group-hover:text-primary">{item}</span>
                   </label>
                 ))}
               </div>
 
-              <div className="mt-8 flex gap-4 rounded-2xl bg-tertiary-fixed p-6">
-                <span className="material-symbols-outlined text-on-tertiary-fixed-variant">warning</span>
+              <div className="mt-8 flex items-start gap-3 rounded-[12px] border-l-4 border-[#f59e0b] bg-[#fff8f0] p-[16px]">
+                <span className="text-[#d97706]">⚠</span>
                 <div>
-                  <h4 className="mb-1 font-bold text-on-tertiary-fixed">{config.warningTitle}</h4>
-                  <p className="text-sm leading-snug text-on-tertiary-fixed-variant">{config.warningDescription}</p>
+                  <h4 className="mb-1 font-semibold text-[#92400e]">{config.warningTitle}</h4>
+                  <p className="text-[14px] leading-snug text-[#92400e]">{config.warningDescription}</p>
                 </div>
               </div>
             </div>
@@ -229,10 +226,10 @@ export default async function VisaDetailPage({ params }: VisaDetailPageProps) {
 
           <div className="lg:col-span-8">
             <h2 className="mb-12 font-headline text-4xl font-bold text-primary">Viza olish bosqichlari</h2>
-            <div className="relative space-y-12 before:absolute before:bottom-4 before:left-8 before:top-4 before:w-px before:bg-outline-variant/30">
+            <div className="relative space-y-8 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-px before:bg-outline-variant/30 md:space-y-12 md:before:left-8">
               {config.steps.map((step, index) => (
-                <div key={step.title} className="group relative pl-24">
-                  <div className="absolute left-0 top-0 flex h-16 w-16 items-center justify-center rounded-full border-4 border-surface bg-surface-container-highest text-2xl font-bold text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-white">
+                <div key={step.title} className="group relative pl-16 md:pl-24">
+                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border-4 border-surface bg-surface-container-highest text-[16px] font-semibold text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-white md:h-16 md:w-16 md:text-2xl md:font-bold">
                     {index + 1}
                   </div>
                   <h3 className="mb-3 font-headline text-2xl font-bold text-primary">{step.title}</h3>

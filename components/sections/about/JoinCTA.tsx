@@ -39,7 +39,7 @@ export function JoinCTA({
         <h2 className="font-headline text-4xl font-black tracking-tight text-on-surface md:text-5xl">{title}</h2>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-on-surface-variant md:text-lg">{description}</p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link className="rounded-full bg-[#E53935] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#C62828]" href={ROUTES.HOME}>
+          <Link className="rounded-full bg-[#dc2626] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#b91c1c]" href={ROUTES.HOME}>
             A&apos;zo bo&apos;lish
           </Link>
           <Link

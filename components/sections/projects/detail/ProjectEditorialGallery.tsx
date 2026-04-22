@@ -1,6 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
-import { ROUTES } from '@/lib/constants/routes'
+import MobileHorizontalScroller from '@/components/ui/MobileHorizontalScroller'
 import { cn } from '@/lib/utils/cn'
 import type { ProjectDetailContent } from '@/lib/types/projectDetail'
 
@@ -19,15 +18,19 @@ function ProjectEditorialGallery({ detail, className }: ProjectEditorialGalleryP
           <h2 className="font-headline text-4xl font-bold tracking-tight text-primary md:text-5xl">{detail.galleryTitle}</h2>
           <p className="mt-4 max-w-xl font-body text-on-surface-variant">{detail.gallerySubtitle}</p>
         </div>
-        <Link
-          className="border-b-2 border-primary/20 pb-1 font-headline font-bold text-primary transition-all hover:border-primary"
-          href={ROUTES.GALLERY}
-        >
-          Barchasini ko&apos;rish
-        </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:auto-rows-[250px] md:grid-cols-4">
+      <MobileHorizontalScroller className="-mx-8 md:hidden" viewportClassName="gap-4 px-8 pb-2">
+        {[a, b, c, d].map((photo) => (
+          <article key={photo.src} className="w-[85vw] shrink-0 snap-center overflow-hidden rounded-xl bg-white shadow-[0_8px_24px_rgba(25,28,30,0.12)]">
+            <div className="relative h-[220px] w-full">
+              <Image src={photo.src} alt={photo.alt} fill sizes="85vw" className="object-cover" />
+            </div>
+          </article>
+        ))}
+      </MobileHorizontalScroller>
+
+      <div className="hidden grid-cols-1 gap-4 md:auto-rows-[250px] md:grid md:grid-cols-4">
         <div className="group relative h-72 overflow-hidden rounded-xl md:col-span-2 md:row-span-2 md:h-full">
           <Image
             src={a.src}
@@ -36,9 +39,7 @@ function ProjectEditorialGallery({ detail, className }: ProjectEditorialGalleryP
             sizes="(max-width:768px) 100vw, 50vw"
             className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
-          <div className="absolute inset-0 flex items-end bg-primary/0 p-6 opacity-0 transition-opacity duration-300 group-hover:bg-primary/20 group-hover:opacity-100">
-            {a.label ? <span className="font-headline font-bold text-white">{a.label}</span> : null}
-          </div>
+          <div className="absolute inset-0 bg-primary/0 opacity-0 transition-opacity duration-300 group-hover:bg-primary/20 group-hover:opacity-100" />
         </div>
         <div className="group relative h-64 overflow-hidden rounded-xl md:col-span-2 md:h-full">
           <Image

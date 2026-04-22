@@ -1,8 +1,10 @@
 import Footer from '@/components/layout/Footer'
+import MobileHorizontalScroller from '@/components/ui/MobileHorizontalScroller'
 import Navbar from '@/components/layout/Navbar'
+import FilterPill from '@/components/ui/FilterPill'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FiArrowRight, FiArrowUpRight } from 'react-icons/fi'
+import { FiArrowRight } from 'react-icons/fi'
 import { HiOutlineCalendarDays, HiOutlineMapPin } from 'react-icons/hi2'
 import {
   buildArchivePool,
@@ -41,6 +43,14 @@ interface EventsApiResponse {
   }
 }
 
+function toEventSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/'/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 function buildPageHref(page: number, year: string, type: string): string {
   const params = new URLSearchParams()
   params.set('page', String(page))
@@ -64,6 +74,26 @@ function getPaginationItems(current: number, total: number): Array<number | '...
     return [1, '...', total - 3, total - 2, total - 1, total]
   }
   return [1, '...', current - 1, current, current + 1, '...', total]
+}
+
+function getMobilePaginationItems(current: number, total: number): Array<number | '...'> {
+  if (total <= 1) {
+    return [1]
+  }
+  const items: Array<number | '...'> = [1]
+  if (current > 2) {
+    items.push('...')
+  }
+  if (current !== 1 && current !== total) {
+    items.push(current)
+  }
+  if (current < total - 1) {
+    items.push('...')
+  }
+  if (total !== 1) {
+    items.push(total)
+  }
+  return items
 }
 
 interface EventsPageProps {
@@ -119,22 +149,27 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const data = await getEventsData(page, year, type)
   const { featured, upcoming, archive, pagination } = data
   const paginationItems = getPaginationItems(pagination.page, pagination.totalPages)
+  const mobilePaginationItems = getMobilePaginationItems(pagination.page, pagination.totalPages)
 
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-7xl bg-background px-8 pb-24 pt-32 font-body text-on-background">
+      <main className="mx-auto max-w-7xl bg-background px-4 pb-24 pt-20 font-body text-on-background md:px-8 md:pt-32">
         <header className="mb-20">
-          <h1 className="mb-6 font-headline text-7xl font-bold leading-none tracking-tighter text-primary md:text-9xl">Tadbirlar</h1>
-          <p className="max-w-2xl text-lg font-light leading-relaxed text-outline md:text-xl">
-            BUSA ning barcha o'tgan va kelgusi tadbirlari - talabalar hamjamiyati hayotining digital arxivi.
+          <h1 className="mb-6 font-headline text-4xl font-bold leading-none tracking-tighter text-primary md:text-9xl">Tadbirlar</h1>
+          <p className="max-w-2xl text-base font-light leading-relaxed text-outline md:text-xl">
+            BUSA ning barcha o&apos;tgan va kelgusi tadbirlari - talabalar hamjamiyati hayotining digital arxivi.
           </p>
         </header>
 
+        <div className="mb-12">
+          <p className="text-[12px] font-normal uppercase tracking-[0.15em] text-[#6e6e73]">KELAYOTGAN TADBIRLAR</p>
+        </div>
+
         <section className="mb-24">
-          <div className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-white">
+          <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-12">
-              <div className="relative h-[500px] lg:col-span-7">
+              <div className="relative h-[220px] md:h-[500px] lg:col-span-7">
                 <Image
                   src={featured.image}
                   alt={featured.alt}
@@ -143,13 +178,9 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                   className="object-cover"
                 />
               </div>
-              <div className="flex flex-col justify-center p-12 lg:col-span-5">
-                <div className="mb-6 flex items-center space-x-2 text-xs font-bold uppercase tracking-widest text-primary">
-                  <span className="h-px w-8 bg-primary" />
-                  <span>{featured.badge}</span>
-                </div>
-                <h2 className="mb-4 font-headline text-5xl font-bold tracking-tight text-primary">{featured.title}</h2>
-                <div className="mb-10 space-y-4 text-outline">
+              <div className="flex flex-col justify-center bg-white p-4 md:p-12 lg:col-span-5">
+                <h2 className="mb-3 font-headline text-[28px] font-bold leading-tight tracking-tight text-primary md:mb-4 md:text-5xl">{featured.title}</h2>
+                <div className="mb-6 space-y-3 text-outline md:mb-10 md:space-y-4">
                   <div className="flex items-center gap-3">
                     <HiOutlineCalendarDays className="h-5 w-5 text-primary-container" />
                     <span className="font-medium text-on-surface">{featured.date}</span>
@@ -158,169 +189,175 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                     <HiOutlineMapPin className="h-5 w-5 text-primary-container" />
                     <span className="font-medium text-on-surface">{featured.location}</span>
                   </div>
-                  <p className="pt-2 text-on-surface-variant">{featured.description}</p>
+                  <p className="pt-1 text-[13px] leading-relaxed text-on-surface-variant md:pt-2 md:text-base">{featured.description}</p>
                 </div>
-                <Link
-                  className="inline-flex self-start items-center rounded-full bg-[#E53935] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#C62828]"
-                  href="/event-details.html"
-                >
-                  Telegram orqali
-                  <FiArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link
+                    className="inline-flex self-start items-center rounded-full bg-[#dc2626] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#b91c1c]"
+                    href={`${ROUTES.EVENTS}/${toEventSlug(featured.title)}`}
+                  >
+                    Batafsil
+                    <FiArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         <section className="mb-32">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <MobileHorizontalScroller className="-mx-4" viewportClassName="gap-4 px-4 pb-2">
             {upcoming.map((event) => (
-              <div
+              <Link
+                key={`mobile-${event.title}`}
+                href={`${ROUTES.EVENTS}/${toEventSlug(event.title)}`}
+                className="group block w-[88vw] shrink-0 snap-center cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white transition-all duration-300"
+              >
+                <div className="relative h-[180px] overflow-hidden bg-surface-container">
+                  <Image src={event.image} alt={event.alt} fill sizes="88vw" className="object-cover" />
+                </div>
+                <div className="p-4">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <span className={`rounded-full px-3 py-1 text-[10px] font-bold tracking-wider shadow-sm ${event.badgeClassName}`}>{event.badge}</span>
+                  </div>
+                  <h3 className="mb-2 font-headline text-[22px] font-bold leading-[1.15] tracking-tight text-primary">{event.title}</h3>
+                  <div className="space-y-1 text-[13px] text-outline">
+                    <p className="font-medium text-on-surface">{event.date}</p>
+                    <p>{event.location}</p>
+                  </div>
+                  <span className="mt-3 inline-flex items-center text-xs font-bold text-outline">
+                    BATAFSIL
+                    <FiArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </MobileHorizontalScroller>
+
+          <div className="hidden grid-cols-1 gap-8 md:grid md:grid-cols-2">
+            {upcoming.map((event) => (
+              <Link
                 key={event.title}
-                className="group overflow-hidden rounded-xl border border-[#e2e8f0] bg-white"
+                href={`${ROUTES.EVENTS}/${toEventSlug(event.title)}`}
+                className="group block cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(15,23,42,0.1)]"
               >
                 <div className="relative aspect-video overflow-hidden bg-surface-container">
                   <Image src={event.image} alt={event.alt} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
                 </div>
-                <div className="p-7">
-                  <div className="mb-5 flex items-start justify-between">
-                    <span className={`rounded-full px-4 py-1.5 font-headline text-xs font-bold tracking-wider ${event.badgeClassName}`}>{event.badge}</span>
-                    <FiArrowUpRight className="h-5 w-5 text-primary opacity-0 transition-opacity group-hover:opacity-100" />
+                <div className="p-8">
+                  <div className="mb-5 flex items-start justify-between gap-3">
+                    <span className={`rounded-full px-4 py-1.5 font-headline text-xs font-bold tracking-wider shadow-sm ${event.badgeClassName}`}>{event.badge}</span>
                   </div>
-                  <h3 className="mb-3 font-headline text-3xl font-bold tracking-tight text-primary">{event.title}</h3>
-                  <div className="mb-5 space-y-2 text-sm text-outline">
+                  <h3 className="mb-3 font-headline text-[32px] font-bold leading-[1.1] tracking-tight text-primary">{event.title}</h3>
+                  <div className="mb-6 space-y-2 text-sm text-outline">
                     <p className="font-medium text-on-surface">{event.date}</p>
                     <p>{event.location}</p>
                   </div>
-                  <Link className="inline-flex items-center text-xs font-bold text-outline transition-colors group-hover:text-primary" href="/event-details.html">
+                  <span className="inline-flex items-center text-xs font-bold text-outline transition-colors group-hover:text-primary">
                     BATAFSIL
                     <FiArrowRight className="ml-1 h-3.5 w-3.5" />
-                  </Link>
+                  </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
 
         <section>
           <div className="mb-12">
-            <p className="text-[12px] font-normal uppercase tracking-[0.15em] text-[#86868b]">TADBIRLAR ARXIVI</p>
+            <p className="text-[12px] font-normal uppercase tracking-[0.15em] text-[#6e6e73]">TADBIRLAR ARXIVI</p>
           </div>
 
-          <div className="mb-6 flex flex-wrap items-center gap-[12px]">
-            <Link
-              className={
-                year === 'all'
-                  ? 'rounded-full bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white'
-                  : 'rounded-full border border-[#00236f]/25 px-[16px] py-[8px] text-[14px] font-normal text-[#00236f] transition duration-200 hover:border-[#00236f] hover:bg-[#00236f]/5'
-              }
-              href={buildPageHref(1, 'all', type)}
-            >
-                Barchasi
-            </Link>
-            <Link
-              className={
-                year === '2024'
-                  ? 'rounded-full bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white'
-                  : 'rounded-full border border-[#00236f]/25 px-[16px] py-[8px] text-[14px] font-normal text-[#00236f] transition duration-200 hover:border-[#00236f] hover:bg-[#00236f]/5'
-              }
-              href={buildPageHref(1, '2024', type)}
-            >
-                2024
-            </Link>
-            <Link
-              className={
-                year === '2023'
-                  ? 'rounded-full bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white'
-                  : 'rounded-full border border-[#00236f]/25 px-[16px] py-[8px] text-[14px] font-normal text-[#00236f] transition duration-200 hover:border-[#00236f] hover:bg-[#00236f]/5'
-              }
-              href={buildPageHref(1, '2023', type)}
-            >
-                2023
-            </Link>
+          <div className="mb-6 flex flex-wrap items-center gap-[6px] md:gap-[12px]">
+            <FilterPill active={year === 'all'} href={buildPageHref(1, 'all', type)}>
+              Barchasi
+            </FilterPill>
+            <FilterPill active={year === '2024'} href={buildPageHref(1, '2024', type)}>
+              2024
+            </FilterPill>
+            <FilterPill active={year === '2023'} href={buildPageHref(1, '2023', type)}>
+              2023
+            </FilterPill>
           </div>
 
           <div className="my-[16px] h-[1px] bg-[rgba(0,0,0,0.06)]" />
 
-          <div className="mb-6 flex flex-wrap items-center gap-[12px]">
-            <Link
-              className={
-                type === 'all'
-                  ? 'rounded-full bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white'
-                  : 'rounded-full border border-[#00236f]/25 px-[16px] py-[8px] text-[14px] font-normal text-[#00236f] transition duration-200 hover:border-[#00236f] hover:bg-[#00236f]/5'
-              }
-              href={buildPageHref(1, year, 'all')}
-            >
+          <div className="mb-6 flex flex-wrap items-center gap-[6px] md:gap-[12px]">
+            <FilterPill active={type === 'all'} className="shrink-0 px-[12px] py-[6px] text-[13px] md:px-[16px] md:py-[8px] md:text-[14px]" href={buildPageHref(1, year, 'all')}>
               All
-            </Link>
-            <Link
-              className={
-                type === 'madaniy'
-                  ? 'rounded-full bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white'
-                  : 'rounded-full border border-[#00236f]/25 px-[16px] py-[8px] text-[14px] font-normal text-[#00236f] transition duration-200 hover:border-[#00236f] hover:bg-[#00236f]/5'
-              }
-              href={buildPageHref(1, year, 'madaniy')}
-            >
+            </FilterPill>
+            <FilterPill active={type === 'madaniy'} className="shrink-0 px-[12px] py-[6px] text-[13px] md:px-[16px] md:py-[8px] md:text-[14px]" href={buildPageHref(1, year, 'madaniy')}>
               Madaniy
-            </Link>
-            <Link
-              className={
-                type === 'trip'
-                  ? 'rounded-full bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white'
-                  : 'rounded-full border border-[#00236f]/25 px-[16px] py-[8px] text-[14px] font-normal text-[#00236f] transition duration-200 hover:border-[#00236f] hover:bg-[#00236f]/5'
-              }
-              href={buildPageHref(1, year, 'trip')}
-            >
+            </FilterPill>
+            <FilterPill active={type === 'trip'} className="shrink-0 px-[12px] py-[6px] text-[13px] md:px-[16px] md:py-[8px] md:text-[14px]" href={buildPageHref(1, year, 'trip')}>
               Trip
-            </Link>
-            <Link
-              className={
-                type === 'sport'
-                  ? 'rounded-full bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white'
-                  : 'rounded-full border border-[#00236f]/25 px-[16px] py-[8px] text-[14px] font-normal text-[#00236f] transition duration-200 hover:border-[#00236f] hover:bg-[#00236f]/5'
-              }
-              href={buildPageHref(1, year, 'sport')}
-            >
+            </FilterPill>
+            <FilterPill active={type === 'sport'} className="shrink-0 px-[12px] py-[6px] text-[13px] md:px-[16px] md:py-[8px] md:text-[14px]" href={buildPageHref(1, year, 'sport')}>
               Sport
-            </Link>
-            <Link
-              className={
-                type === 'workshop'
-                  ? 'rounded-full bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white'
-                  : 'rounded-full border border-[#00236f]/25 px-[16px] py-[8px] text-[14px] font-normal text-[#00236f] transition duration-200 hover:border-[#00236f] hover:bg-[#00236f]/5'
-              }
-              href={buildPageHref(1, year, 'workshop')}
-            >
+            </FilterPill>
+            <FilterPill active={type === 'workshop'} className="shrink-0 px-[12px] py-[6px] text-[13px] md:px-[16px] md:py-[8px] md:text-[14px]" href={buildPageHref(1, year, 'workshop')}>
               Workshop
-            </Link>
-            <p className="ml-auto text-[13px] font-normal text-[#86868b]">
+            </FilterPill>
+            <p className="mt-[8px] block w-full text-[12px] font-normal text-[#86868b] md:ml-auto md:mt-0 md:block md:w-auto md:text-[13px]">
               Ko&apos;rsatilmoqda: {pagination.start}-{pagination.end} / {pagination.totalItems} ta
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <MobileHorizontalScroller className="-mx-4" viewportClassName="gap-4 px-4 pb-2">
             {archive.map((event, index) => (
-              <article
-                key={`${event.title}-${index}`}
-                className="group rounded-xl border border-[#e2e8f0] bg-white p-3 transition-transform duration-300 hover:scale-[1.02]"
+              <Link
+                key={`mobile-${event.title}-${index}`}
+                href={`${ROUTES.EVENTS}/${toEventSlug(event.title)}`}
+                className="group block w-[88vw] shrink-0 snap-center cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white transition-all duration-300"
               >
-                <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-lg bg-surface-container">
-                  <Image src={event.image} alt={event.alt} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" />
+                <div className="relative h-[180px] overflow-hidden bg-surface-container">
+                  <Image src={event.image} alt={event.alt} fill sizes="88vw" className="object-cover" />
                 </div>
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <span className="rounded-full bg-surface-container px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">{event.category}</span>
-                  <span className="text-[10px] font-medium uppercase text-outline">{event.date}</span>
+                <div className="p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">{event.category}</span>
+                    <span className="text-[10px] font-medium uppercase text-outline">{event.date}</span>
+                  </div>
+                  <h4 className="font-headline text-[18px] font-semibold text-primary">{event.title}</h4>
+                  <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-on-surface-variant">{event.description}</p>
+                  <span className="mt-3 inline-flex items-center text-xs font-bold text-outline">
+                    BATAFSIL
+                    <FiArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </span>
                 </div>
-                <h4 className="font-headline text-lg font-bold text-primary transition-colors group-hover:text-primary-container">{event.title}</h4>
-                <Link className="mt-3 inline-flex items-center text-xs font-bold text-outline transition-colors group-hover:text-primary" href="/event-details.html">
-                  BATAFSIL
-                  <FiArrowRight className="ml-1 h-3.5 w-3.5" />
-                </Link>
-              </article>
+              </Link>
+            ))}
+          </MobileHorizontalScroller>
+
+          <div className="hidden grid-cols-1 gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
+            {archive.map((event, index) => (
+              <Link
+                key={`${event.title}-${index}`}
+                href={`${ROUTES.EVENTS}/${toEventSlug(event.title)}`}
+                className="group block cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(15,23,42,0.09)]"
+              >
+                <div className="relative h-[180px] overflow-hidden bg-surface-container md:aspect-[4/3] md:h-auto">
+                  <Image src={event.image} alt={event.alt} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                </div>
+                <div className="p-4 md:p-6">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">{event.category}</span>
+                    <span className="text-[10px] font-medium uppercase text-outline">{event.date}</span>
+                  </div>
+                  <h4 className="font-headline text-[18px] font-semibold text-primary transition-colors group-hover:text-primary-container md:text-xl md:font-bold">
+                    {event.title}
+                  </h4>
+                  <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-on-surface-variant md:hidden">{event.description}</p>
+                  <span className="mt-3 inline-flex items-center text-xs font-bold text-outline transition-colors group-hover:text-primary">
+                    BATAFSIL
+                    <FiArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
             ))}
           </div>
 
-          <div className="mt-10 flex items-center justify-center gap-2 text-sm">
+          <div className="mt-10 hidden items-center justify-center gap-[8px] text-[14px] md:flex md:gap-2 md:text-sm">
             {pagination.page > 1 ? (
               <Link className="rounded-md px-3 py-2 font-medium text-primary transition-colors hover:bg-surface-container" href={buildPageHref(pagination.page - 1, year, type)}>
                 ← Previous
@@ -329,7 +366,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
               <span className="rounded-md px-3 py-2 text-slate-400">← Previous</span>
             )}
 
-            {paginationItems.map((item, index) =>
+            {mobilePaginationItems.map((item, index) =>
               item === '...' ? (
                 <span key={`ellipsis-${index}`} className="px-2 text-outline">
                   ...
@@ -338,7 +375,25 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                 <Link
                   key={item}
                   href={buildPageHref(item, year, type)}
-                  className={`rounded-md px-3 py-2 font-medium transition-colors ${
+                  className={`rounded-md px-3 py-2 font-medium transition-colors md:hidden ${
+                    item === pagination.page ? 'bg-[#1e3a8a] text-white' : 'text-primary hover:bg-surface-container'
+                  }`}
+                >
+                  {item}
+                </Link>
+              )
+            )}
+
+            {paginationItems.map((item, index) =>
+              item === '...' ? (
+                <span key={`desktop-ellipsis-${index}`} className="hidden px-2 text-outline md:inline">
+                  ...
+                </span>
+              ) : (
+                <Link
+                  key={`desktop-${item}`}
+                  href={buildPageHref(item, year, type)}
+                  className={`hidden rounded-md px-3 py-2 font-medium transition-colors md:inline-flex ${
                     item === pagination.page ? 'bg-[#1e3a8a] text-white' : 'text-primary hover:bg-surface-container'
                   }`}
                 >

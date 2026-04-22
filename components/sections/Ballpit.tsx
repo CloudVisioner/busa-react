@@ -7,6 +7,8 @@ import {
   Color,
   InstancedMesh,
   MathUtils,
+  Material,
+  Mesh,
   MeshPhysicalMaterial,
   Object3D,
   PerspectiveCamera,
@@ -42,9 +44,17 @@ interface SizeData {
   pixelRatio: number
 }
 
+interface PostprocessingController {
+  setSize: (width: number, height: number) => void
+  dispose?: () => void
+}
+
+type DisposableMaterial = Material & Record<string, unknown>
+type MeshWithResources = Mesh & { material?: DisposableMaterial | DisposableMaterial[]; geometry?: { dispose?: () => void } }
+
 class ThreeController {
   #config: ThreeConfig
-  #postprocessing: any
+  #postprocessing?: PostprocessingController
   #resizeObserver?: ResizeObserver
   #intersectionObserver?: IntersectionObserver
   #resizeTimer?: number
@@ -235,13 +245,18 @@ class ThreeController {
 
   clear() {
     this.scene.traverse((obj) => {
-      const mesh = obj as any
+      const mesh = obj as MeshWithResources
       if (mesh.isMesh && mesh.material && typeof mesh.material === 'object') {
-        Object.keys(mesh.material).forEach((key) => {
-          const matProp = mesh.material[key]
-          if (matProp && typeof matProp === 'object' && typeof matProp.dispose === 'function') matProp.dispose()
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+        materials.forEach((material) => {
+          const materialRecord = material as unknown as Record<string, unknown>
+          Object.values(materialRecord).forEach((matProp) => {
+            if (matProp && typeof matProp === 'object' && 'dispose' in matProp && typeof matProp.dispose === 'function') {
+              matProp.dispose()
+            }
+          })
+          material.dispose?.()
         })
-        mesh.material.dispose?.()
         mesh.geometry?.dispose?.()
       }
     })
@@ -402,7 +417,7 @@ class PhysicsEngine {
 }
 
 class GooMaterial extends MeshPhysicalMaterial {
-  uniforms: { [key: string]: { value: any } } = {
+  uniforms: Record<string, { value: number }> = {
     thicknessDistortion: { value: 0.1 },
     thicknessAmbient: { value: 0 },
     thicknessAttenuation: { value: 0.1 },
@@ -411,7 +426,7 @@ class GooMaterial extends MeshPhysicalMaterial {
   }
   defines: { USE_UV: string } = { USE_UV: '' }
 
-  constructor(params: any) {
+  constructor(params: ConstructorParameters<typeof MeshPhysicalMaterial>[0] = {}) {
     super(params)
     this.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, this.uniforms)

@@ -7,9 +7,9 @@ interface StatsSectionProps {
 
 export function StatsSection({ className }: StatsSectionProps) {
   return (
-    <section className={cn('relative overflow-hidden px-6 py-32 md:py-40', className)}>
+    <section className={cn('relative overflow-hidden px-4 py-16 md:px-8 md:py-40', className)}>
       <div className="absolute inset-0 bg-[#eceef1]" />
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 scale-90 md:scale-100">
         <Ballpit count={100} gravity={0.01} friction={0.9975} wallBounce={0.95} followCursor={false} />
       </div>
       <div className="pointer-events-none absolute inset-0 bg-white/58" />
@@ -27,15 +27,15 @@ export function StatsSection({ className }: StatsSectionProps) {
         <div className="mx-auto max-w-5xl rounded-[2rem] border border-black/5 bg-white/85 p-8 shadow-[0_18px_45px_rgba(25,28,30,0.12)] backdrop-blur-sm md:p-12">
           <div className="grid grid-cols-1 gap-14 text-center md:grid-cols-3">
             <div className="space-y-3">
-              <div className="font-headline text-6xl font-black text-[#00236f] md:text-8xl">700+</div>
+              <div className="font-headline text-5xl font-black text-[#00236f] md:text-8xl">700+</div>
               <div className="text-[13px] font-normal uppercase tracking-[0.12em] text-[#6e6e73]">Ro&apos;yxatdan o&apos;tgan a&apos;zolar</div>
             </div>
             <div className="space-y-3">
-              <div className="font-headline text-6xl font-black text-[#00236f] md:text-8xl">80+</div>
+              <div className="font-headline text-5xl font-black text-[#00236f] md:text-8xl">80+</div>
               <div className="text-[13px] font-normal uppercase tracking-[0.12em] text-[#6e6e73]">Yakunlangan tadbirlar</div>
             </div>
             <div className="space-y-3">
-              <div className="font-headline text-6xl font-black text-[#00236f] md:text-8xl">15+</div>
+              <div className="font-headline text-5xl font-black text-[#00236f] md:text-8xl">15+</div>
               <div className="text-[13px] font-normal uppercase tracking-[0.12em] text-[#6e6e73]">Akademik hamkorlar</div>
             </div>
           </div>

@@ -24,7 +24,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="uz" className="light">
-      <body className={`${roboto.variable} ${spaceGrotesk.variable} font-body antialiased`}>
+      <body className={`${roboto.variable} ${spaceGrotesk.variable} overflow-x-hidden font-body antialiased`}>
         {children}
       </body>
     </html>

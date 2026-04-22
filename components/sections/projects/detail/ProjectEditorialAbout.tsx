@@ -14,24 +14,24 @@ function ProjectEditorialAbout({ detail, className }: ProjectEditorialAboutProps
         <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-12 lg:gap-16 xl:gap-20">
           <div className="lg:col-span-5">
             <h2 className="font-headline text-4xl font-bold leading-[1.1] tracking-tight text-primary md:text-5xl">{detail.aboutTitle}</h2>
-            <div className="mt-8 space-y-6 font-body text-base leading-relaxed text-slate-600 md:text-lg">
+            <div className="mt-8 space-y-6 font-body text-base leading-relaxed text-slate-700 md:text-lg">
               {detail.aboutParagraphs.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:col-span-7 lg:gap-6">
+          <div className="grid grid-cols-2 gap-4 lg:col-span-7 lg:gap-6">
             {detail.features.map((f) => (
               <div
                 key={f.title}
-                className="group flex flex-col rounded-2xl border border-slate-100/90 bg-white p-7 shadow-[0_10px_40px_rgba(0,35,111,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-slate-200 hover:shadow-[0_18px_50px_rgba(15,23,42,0.12)] md:p-8"
+                className="group flex min-h-[220px] flex-col rounded-2xl border border-slate-100/90 bg-white p-5 shadow-[0_10px_40px_rgba(0,35,111,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-slate-200 hover:shadow-[0_18px_50px_rgba(15,23,42,0.12)] md:p-8"
               >
-                <div className="mb-5">
-                  <ProjectFeatureGlyph iconName={f.icon} className="h-11 w-11 transition-transform duration-300 group-hover:scale-105 md:h-12 md:w-12" />
+                <div className="mb-4">
+                  <ProjectFeatureGlyph iconName={f.icon} className="h-9 w-9 transition-transform duration-300 group-hover:scale-105 md:h-12 md:w-12" />
                 </div>
-                <h3 className="mb-2 font-headline text-lg font-bold tracking-tight text-primary md:text-xl">{f.title}</h3>
-                <p className="font-body text-sm leading-relaxed text-slate-600 md:text-[0.9375rem]">{f.description}</p>
+                <h3 className="mb-2 font-headline text-base font-bold tracking-tight text-primary md:text-xl">{f.title}</h3>
+                <p className="font-body text-[13px] leading-relaxed text-slate-700 md:text-[0.9375rem]">{f.description}</p>
               </div>
             ))}
           </div>

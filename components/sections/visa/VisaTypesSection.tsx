@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import { HiOutlineAcademicCap, HiOutlineBriefcase, HiOutlineWrenchScrewdriver } from 'react-icons/hi2'
+import MobileHorizontalScroller from '@/components/ui/MobileHorizontalScroller'
 import { ROUTES } from '@/lib/constants/routes'
 import { cn } from '@/lib/utils/cn'
 
@@ -57,7 +60,42 @@ function VisaTypesSection({ className }: VisaTypesSectionProps) {
           Talabalik, ish izlash va professional faoliyat uchun Koreyada eng ko&apos;p uchraydigan viza turlari.
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <MobileHorizontalScroller className="-mx-6" viewportClassName="gap-[16px] px-[16px] pb-[16px]">
+        {VISA_TYPES.map((visa) => {
+          const Icon = visa.icon
+          return (
+            <article
+              key={visa.code}
+              className="group w-[85vw] shrink-0 snap-center rounded-[20px] border border-[rgba(0,0,0,0.08)] bg-white p-[24px] shadow-sm transition-all duration-200"
+            >
+              <div className="mb-6 flex items-start justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100">
+                  <Icon className="h-6 w-6 text-[#00236f]" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{visa.label}</span>
+              </div>
+              <h3 className="mb-2 font-headline text-2xl font-bold tracking-tight text-on-surface">{visa.code}</h3>
+              <p className="mb-5 text-sm text-on-surface-variant">{visa.subtitle}</p>
+              <ul className="mb-6 space-y-3 text-sm text-on-surface-variant">
+                {visa.items.map((item) => (
+                  <li key={item} className="flex items-start">
+                    <span className="mr-3 mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#00236f]" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={`${ROUTES.VISA}/${visa.slug}`}
+                className="mt-auto inline-flex w-full items-center justify-center rounded-full border border-[#00236f] bg-transparent py-[12px] text-[15px] font-normal text-[#00236f] transition hover:opacity-90"
+              >
+                Batafsil
+              </Link>
+            </article>
+          )
+        })}
+      </MobileHorizontalScroller>
+
+      <div className="hidden grid-cols-1 gap-6 md:grid md:grid-cols-3">
         {VISA_TYPES.map((visa) => {
           const Icon = visa.icon
           return (

@@ -12,6 +12,7 @@ export interface ArchiveEvent {
   category: string
   date: string
   title: string
+  description?: string
   image: string
   alt: string
 }

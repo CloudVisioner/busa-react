@@ -1,11 +1,13 @@
+'use client'
+
 import Link from 'next/link'
-import { FiArrowRight } from 'react-icons/fi'
 import { HiOutlineClock } from 'react-icons/hi2'
 import { ROUTES } from '@/lib/constants/routes'
 import { cn } from '@/lib/utils/cn'
 
 interface VisaArticlesSectionProps {
   className?: string
+  searchQuery?: string
 }
 
 interface VisaArticle {
@@ -44,31 +46,36 @@ const ARTICLES: VisaArticle[] = [
   },
 ]
 
-function VisaArticlesSection({ className }: VisaArticlesSectionProps) {
+function VisaArticlesSection({ className, searchQuery = '' }: VisaArticlesSectionProps) {
+  const normalizedQuery = searchQuery.toLowerCase().trim()
+  const filteredArticles = ARTICLES.filter((article) => article.title.toLowerCase().includes(normalizedQuery))
+
   return (
     <section className={cn('bg-[#f5f5f7] py-[80px]', className)}>
       <div className="mx-auto max-w-[1200px] px-[24px]">
         <div className="mb-[32px] flex flex-col justify-between gap-[24px] md:flex-row md:items-end">
           <h2 className="text-[40px] font-semibold tracking-[-0.003em] text-[#1d1d1f]">Bilimlar bazasi</h2>
-          <div className="flex flex-wrap gap-[8px]">
-            <button className="rounded-[980px] bg-[#00236f] px-[16px] py-[8px] text-[14px] font-normal text-white">Barchasi</button>
-            <button className="rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[16px] py-[8px] text-[14px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f]">
+          <div className="scrollbar-hide flex flex-nowrap gap-[6px] overflow-x-auto pb-[4px] md:flex-wrap md:gap-[8px] md:overflow-visible md:pb-0">
+            <button className="shrink-0 rounded-[980px] bg-[#00236f] px-[12px] py-[6px] text-[13px] font-normal text-white md:px-[16px] md:py-[8px] md:text-[14px]">
+              Barchasi
+            </button>
+            <button className="shrink-0 rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[12px] py-[6px] text-[13px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f] md:px-[16px] md:py-[8px] md:text-[14px]">
               D-2
             </button>
-            <button className="rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[16px] py-[8px] text-[14px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f]">
+            <button className="shrink-0 rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[12px] py-[6px] text-[13px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f] md:px-[16px] md:py-[8px] md:text-[14px]">
               D-10
             </button>
-            <button className="rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[16px] py-[8px] text-[14px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f]">
+            <button className="shrink-0 rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[12px] py-[6px] text-[13px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f] md:px-[16px] md:py-[8px] md:text-[14px]">
               E-7
             </button>
-            <button className="rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[16px] py-[8px] text-[14px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f]">
+            <button className="shrink-0 rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[12px] py-[6px] text-[13px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f] md:px-[16px] md:py-[8px] md:text-[14px]">
               Umumiy
             </button>
           </div>
         </div>
 
         <div className="divide-y divide-[rgba(0,0,0,0.04)]">
-          {ARTICLES.map((article, index) => (
+          {filteredArticles.map((article, index) => (
             <div key={article.title} className={index === 0 ? '' : ''}>
               <Link
                 href={`${ROUTES.VISA}/articles/${article.slug}`}
@@ -97,9 +104,10 @@ function VisaArticlesSection({ className }: VisaArticlesSectionProps) {
                   →
                 </span>
               </Link>
-              {index !== ARTICLES.length - 1 && <div className="h-px w-full bg-[rgba(0,0,0,0.04)]" />}
+              {index !== filteredArticles.length - 1 && <div className="h-px w-full bg-[rgba(0,0,0,0.04)]" />}
             </div>
           ))}
+          {filteredArticles.length === 0 ? <p className="py-[32px] text-center text-[15px] text-[#86868b]">Hech narsa topilmadi</p> : null}
         </div>
 
         <div className="mt-[48px] text-center">

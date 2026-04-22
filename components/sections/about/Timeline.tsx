@@ -74,7 +74,7 @@ export function Timeline({ className }: TimelineProps) {
           tanlangani haqida qisqa, aniq va professional ma&apos;lumot bilan tanishing.
         </p>
 
-        <div className="mb-10 flex flex-wrap justify-center gap-2.5 md:mb-12 md:gap-3">
+        <div className="mb-10 flex flex-nowrap justify-start gap-[6px] overflow-x-auto pb-[4px] scrollbar-hide md:mb-12 md:justify-center md:gap-3 md:overflow-visible md:pb-0">
           {ITEMS.map((item) => {
             const isActive = item.year === activeYear
             return (
@@ -83,7 +83,7 @@ export function Timeline({ className }: TimelineProps) {
                 type="button"
                 onClick={() => setActiveYear(item.year)}
                 className={cn(
-                  'min-w-[4.5rem] rounded-full border px-5 py-2.5 text-lg font-bold tabular-nums tracking-tight transition md:min-w-[5rem] md:px-6 md:py-3 md:text-xl',
+                  'shrink-0 rounded-full border px-[12px] py-[6px] text-[13px] font-bold tabular-nums tracking-tight transition md:min-w-[5rem] md:px-6 md:py-3 md:text-xl',
                   isActive ? 'border-[#00236f] bg-[#00236f] text-white' : 'border-black/10 bg-white text-slate-700 hover:border-[#00236f]/40 hover:text-[#00236f]'
                 )}
               >
@@ -94,30 +94,30 @@ export function Timeline({ className }: TimelineProps) {
         </div>
 
         <div className="mx-auto max-w-5xl rounded-[2rem] border border-black/5 bg-white p-6 shadow-[0_18px_52px_rgba(25,28,30,0.12)] md:p-8 lg:p-10">
-          <article className="grid items-center gap-8 md:grid-cols-[250px_1fr] md:gap-10">
-            <div className="rounded-2xl border border-black/5 bg-white">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
-                <Image src={activeItem.image} alt={`${activeItem.president} portreti`} fill sizes="(max-width: 768px) 100vw, 250px" className="object-cover" />
+          <article className="flex flex-col items-center gap-8 md:grid md:grid-cols-[250px_1fr] md:gap-10">
+            <div className="w-full rounded-[16px] border border-black/5 bg-white md:w-auto md:rounded-2xl">
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-[16px] md:rounded-2xl">
+                <Image
+                  src={activeItem.image}
+                  alt={`${activeItem.president} portreti`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 250px"
+                  className="object-cover object-top"
+                />
               </div>
-              <div className="px-4 py-5 text-center">
-                <h3 className="text-2xl font-bold text-slate-900">{activeItem.president}</h3>
-                <p className="mt-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[#0a66ff] md:text-sm">Prezident</p>
+              <div className="p-[20px] text-left md:px-4 md:py-5 md:text-center">
+                <h3 className="text-[19px] font-semibold text-[#1d1d1f]">{activeItem.president}</h3>
+                <p className="mt-1 text-[12px] uppercase tracking-[0.14em] text-[#86868b]">Prezident</p>
+                <p className="mt-1 text-[12px] text-[#86868b]">{activeItem.year}</p>
               </div>
             </div>
 
             <div className="flex h-full flex-col justify-center space-y-5 text-left md:space-y-6">
               <p className="text-base leading-8 text-slate-700 md:text-lg">
-                <span className="font-bold text-slate-900">Nima qildi:</span> {activeItem.did}
+                <span className="font-bold text-slate-900">Nima qildi:</span> {activeItem.did} {activeItem.changed} {activeItem.vision}
               </p>
-              <p className="text-base leading-8 text-slate-700 md:text-lg">
-                <span className="font-bold text-slate-900">Qanday:</span> {activeItem.changed}
-              </p>
-              <p className="text-base leading-8 text-slate-700 md:text-lg">
-                <span className="font-bold text-slate-900">Nega:</span> {activeItem.vision}
-              </p>
-              <p className="text-base leading-8 text-slate-700 md:text-lg">
-                <span className="font-bold text-slate-900">Yetakchilik yondashuvi:</span> {activeItem.philosophy}
-              </p>
+              <div className="h-px w-full bg-black/10" />
+              <p className="text-[14px] italic leading-8 text-[#6e6e73] md:text-lg">{activeItem.philosophy}</p>
             </div>
           </article>
         </div>

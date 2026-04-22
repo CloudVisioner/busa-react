@@ -1,14 +1,10 @@
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants/routes'
+import { formatDate } from '@/lib/utils/formatDate'
 import type { ArticleDetail } from '@/lib/types/visa'
 
 interface ArticleHeaderProps {
   article: ArticleDetail
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return new Intl.DateTimeFormat('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' }).format(date)
 }
 
 export function ArticleHeader({ article }: ArticleHeaderProps) {

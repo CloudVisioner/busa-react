@@ -1,4 +1,5 @@
 import ProjectCard from '@/components/features/projects/ProjectCard'
+import MobileHorizontalScroller from '@/components/ui/MobileHorizontalScroller'
 import { PROJECTS } from '@/lib/constants/projects'
 import { cn } from '@/lib/utils/cn'
 
@@ -17,7 +18,13 @@ function ProjectsListing({ className }: ProjectsListingProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+      <MobileHorizontalScroller className="-mx-4" viewportClassName="gap-4 px-4 pb-2">
+        {PROJECTS.map((project) => (
+          <ProjectCard key={`mobile-${project.id}`} project={project} className="w-[88vw] shrink-0 snap-center" />
+        ))}
+      </MobileHorizontalScroller>
+
+      <div className="hidden grid-cols-1 gap-10 md:grid md:grid-cols-2 lg:grid-cols-3">
         {PROJECTS.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}

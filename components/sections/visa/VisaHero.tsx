@@ -1,11 +1,15 @@
+'use client'
+
 import { FiSearch } from 'react-icons/fi'
 import { cn } from '@/lib/utils/cn'
 
 interface VisaHeroProps {
   className?: string
+  searchQuery?: string
+  onSearchChange?: (value: string) => void
 }
 
-function VisaHero({ className }: VisaHeroProps) {
+function VisaHero({ className, searchQuery = '', onSearchChange }: VisaHeroProps) {
   return (
     <div className={cn('mb-20', className)}>
       <div className="max-w-3xl">
@@ -19,7 +23,9 @@ function VisaHero({ className }: VisaHeroProps) {
           </div>
           <input
             type="text"
-            placeholder="Savol yozing... 🔍"
+            value={searchQuery}
+            onChange={(event) => onSearchChange?.(event.target.value)}
+            placeholder="Savol yozing..."
             className="w-full rounded-full border border-slate-200 bg-white py-4 pl-16 pr-8 text-lg text-on-surface shadow-sm placeholder:text-slate-400 focus:border-[#00236f] focus:outline-none focus:ring-2 focus:ring-[#00236f]/25"
           />
         </div>

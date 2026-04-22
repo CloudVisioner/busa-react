@@ -76,16 +76,27 @@ export function TeamSection({ className }: TeamSectionProps) {
           Kichik, kuchli va natijaga yo&apos;naltirilgan jamoa: President, Vice President, Project Managers, Design Lead va Tech Lead.
         </p>
 
-        <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-[12px] md:gap-7 lg:grid-cols-4">
           {LEADERS.map((member) => (
-            <article key={member.name} className="group overflow-hidden rounded-3xl border border-black/5 bg-white shadow-[0_12px_30px_rgba(25,28,30,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(10,102,255,0.16)]">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-t-3xl">
-                <Image src={member.photo} alt={member.name} fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+            <article
+              key={member.name}
+              className="group overflow-hidden rounded-[12px] border border-black/5 bg-white pb-[12px] shadow-[0_12px_30px_rgba(25,28,30,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(10,102,255,0.16)] md:rounded-3xl md:pb-0"
+            >
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[12px] md:rounded-t-3xl">
+                <Image
+                  src={member.photo}
+                  alt={member.name}
+                  fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                />
               </div>
-              <div className="px-4 pb-5 pt-4">
-                <h3 className="text-2xl font-bold text-slate-900">{member.name}</h3>
-                <p className="mt-1 text-sm font-semibold uppercase tracking-[0.12em] text-[#0a66ff]">{member.role}</p>
-                <p className="mt-3 text-sm font-medium text-slate-500">Joined {member.joined}</p>
+              <div className="px-3 pt-2 text-center md:px-4 md:pb-5 md:pt-4 md:text-left">
+                <h3 className="mt-[8px] text-[14px] font-semibold text-[#1d1d1f] md:mt-0 md:text-2xl md:font-bold md:text-slate-900">{member.name}</h3>
+                <p className="text-[12px] text-[#86868b] md:mt-1 md:text-sm md:font-semibold md:uppercase md:tracking-[0.12em] md:text-[#0a66ff]">
+                  {member.role}
+                </p>
+                <p className="mt-3 hidden text-sm font-medium text-slate-500 md:block">Joined {member.joined}</p>
               </div>
             </article>
           ))}

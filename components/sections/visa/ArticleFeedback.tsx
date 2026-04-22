@@ -14,22 +14,14 @@ export function ArticleFeedback() {
         <button
           type="button"
           onClick={() => setFeedback('yes')}
-          className={
-            feedback === 'yes'
-              ? 'rounded-full bg-[#00236f] px-[24px] py-[12px] text-[15px] font-normal text-white'
-              : 'rounded-full bg-[#f5f5f7] px-[24px] py-[12px] text-[15px] font-normal text-[#1d1d1f]'
-          }
+          className="min-w-[80px] rounded-full border border-[rgba(0,0,0,0.12)] bg-white px-[24px] py-[10px] text-[15px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f]"
         >
           Ha
         </button>
         <button
           type="button"
           onClick={() => setFeedback('no')}
-          className={
-            feedback === 'no'
-              ? 'rounded-full bg-[#dc2626] px-[24px] py-[12px] text-[15px] font-normal text-white'
-              : 'rounded-full bg-[#f5f5f7] px-[24px] py-[12px] text-[15px] font-normal text-[#1d1d1f]'
-          }
+          className="min-w-[80px] rounded-full border border-[rgba(0,0,0,0.12)] bg-white px-[24px] py-[10px] text-[15px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f]"
         >
           Yo&apos;q
         </button>
