@@ -3,12 +3,24 @@
 import Image from 'next/image'
 import { useState } from 'react'
 import { cn } from '@/lib/utils/cn'
+import { FALLBACK_REMOTE_IMAGE } from '@/lib/utils/remoteImage'
+
+export interface TimelineItem {
+  year: string
+  president: string
+  image: string
+  did: string
+  changed: string
+  philosophy: string
+  vision: string
+}
 
 interface TimelineProps {
   className?: string
+  items?: TimelineItem[]
 }
 
-const ITEMS = [
+const STATIC_ITEMS: TimelineItem[] = [
   {
     year: '2021',
     president: 'Azamat Karimov',
@@ -56,9 +68,11 @@ const ITEMS = [
   },
 ]
 
-export function Timeline({ className }: TimelineProps) {
-  const [activeYear, setActiveYear] = useState('2021')
-  const activeItem = ITEMS.find((item) => item.year === activeYear) ?? ITEMS[0]
+export function Timeline({ className, items }: TimelineProps) {
+  const data = items ?? STATIC_ITEMS
+  const [activeYear, setActiveYear] = useState(data[0]?.year ?? '2021')
+  const activeItem = data.find((item) => item.year === activeYear) ?? data[0]
+  const portraitSrc = activeItem.image?.trim() ? activeItem.image.trim() : FALLBACK_REMOTE_IMAGE
 
   return (
     <section className={cn('bg-[#f5f5f7] px-6 py-28 md:px-8 md:py-32', className)}>
@@ -75,7 +89,7 @@ export function Timeline({ className }: TimelineProps) {
         </p>
 
         <div className="mb-10 flex flex-nowrap justify-start gap-[6px] overflow-x-auto pb-[4px] scrollbar-hide md:mb-12 md:justify-center md:gap-3 md:overflow-visible md:pb-0">
-          {ITEMS.map((item) => {
+          {data.map((item) => {
             const isActive = item.year === activeYear
             return (
               <button
@@ -98,7 +112,7 @@ export function Timeline({ className }: TimelineProps) {
             <div className="w-full rounded-[16px] border border-black/5 bg-white md:w-auto md:rounded-2xl">
               <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-[16px] md:rounded-2xl">
                 <Image
-                  src={activeItem.image}
+                  src={portraitSrc}
                   alt={`${activeItem.president} portreti`}
                   fill
                   sizes="(max-width: 768px) 100vw, 250px"

@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils/cn'
 interface VisaArticlesSectionProps {
   className?: string
   searchQuery?: string
+  articles?: VisaArticle[]
 }
 
-interface VisaArticle {
+export interface VisaArticle {
   title: string
   slug: string
   type: string
@@ -19,7 +20,7 @@ interface VisaArticle {
   description: string
 }
 
-const ARTICLES: VisaArticle[] = [
+const STATIC_ARTICLES: VisaArticle[] = [
   {
     title: "D-2 vizasini qanday uzaytirish mumkin",
     slug: 'd-2-vizasini-qanday-uzaytirish-mumkin',
@@ -46,9 +47,10 @@ const ARTICLES: VisaArticle[] = [
   },
 ]
 
-function VisaArticlesSection({ className, searchQuery = '' }: VisaArticlesSectionProps) {
+function VisaArticlesSection({ className, searchQuery = '', articles }: VisaArticlesSectionProps) {
+  const source = articles ?? STATIC_ARTICLES
   const normalizedQuery = searchQuery.toLowerCase().trim()
-  const filteredArticles = ARTICLES.filter((article) => article.title.toLowerCase().includes(normalizedQuery))
+  const filteredArticles = source.filter((article) => article.title.toLowerCase().includes(normalizedQuery))
 
   return (
     <section className={cn('bg-[#f5f5f7] py-[80px]', className)}>

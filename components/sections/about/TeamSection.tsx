@@ -3,11 +3,19 @@
 import Image from 'next/image'
 import { cn } from '@/lib/utils/cn'
 
-interface TeamSectionProps {
-  className?: string
+export interface TeamMember {
+  name: string
+  role: string
+  joined: string
+  photo: string
 }
 
-const LEADERS = [
+interface TeamSectionProps {
+  className?: string
+  members?: TeamMember[]
+}
+
+const LEADERS: TeamMember[] = [
   {
     name: 'Azamat Karimov',
     role: 'President',
@@ -66,7 +74,9 @@ const LEADERS = [
   },
 ]
 
-export function TeamSection({ className }: TeamSectionProps) {
+export function TeamSection({ className, members }: TeamSectionProps) {
+  const data = members ?? LEADERS
+
   return (
     <section className={cn('bg-surface px-6 py-24 md:py-28', className)}>
       <div className="mx-auto max-w-7xl">
@@ -77,7 +87,7 @@ export function TeamSection({ className }: TeamSectionProps) {
         </p>
 
         <div className="grid grid-cols-2 gap-[12px] md:gap-7 lg:grid-cols-4">
-          {LEADERS.map((member) => (
+          {data.map((member) => (
             <article
               key={member.name}
               className="group overflow-hidden rounded-[12px] border border-black/5 bg-white pb-[12px] shadow-[0_12px_30px_rgba(25,28,30,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(10,102,255,0.16)] md:rounded-3xl md:pb-0"

@@ -6,16 +6,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FiArrowRight } from 'react-icons/fi'
 import { HiOutlineCalendarDays, HiOutlineMapPin } from 'react-icons/hi2'
-import {
-  buildArchivePool,
-  EVENTS_PER_PAGE,
-  EVENTS_TOTAL_COUNT,
-  FEATURED_EVENT,
-  getYearFromDate,
-  UPCOMING_EVENTS,
-} from '@/lib/constants/eventsPage'
+import { queryApollo } from '@/lib/apollo/client'
+import { GET_EVENTS, GET_UPCOMING_EVENTS } from '@/lib/apollo/queries'
 import { ROUTES } from '@/lib/constants/routes'
-import type { ArchiveEvent, UpcomingEvent } from '@/lib/constants/eventsPage'
+import { normalizeRemoteImageUrl } from '@/lib/utils/remoteImage'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+const EVENTS_PER_PAGE = 9
+const EVENTS_TOTAL_COUNT = 87
 
 interface FeaturedEvent {
   badge: string
@@ -23,6 +23,25 @@ interface FeaturedEvent {
   date: string
   location: string
   description: string
+  image: string
+  alt: string
+}
+
+interface UpcomingEvent {
+  badge: string
+  badgeClassName: string
+  title: string
+  date: string
+  location: string
+  image: string
+  alt: string
+}
+
+interface ArchiveEvent {
+  category: string
+  date: string
+  title: string
+  description?: string
   image: string
   alt: string
 }
@@ -105,26 +124,73 @@ interface EventsPageProps {
 }
 
 async function getEventsData(page: number, year: string, type: string): Promise<EventsApiResponse> {
-  const normalizedType = type.toLowerCase()
-  const archivePool = buildArchivePool(EVENTS_TOTAL_COUNT)
-  const filteredArchive = archivePool.filter((event) => {
-    const yearMatch = year === 'all' ? true : getYearFromDate(event.date) === year
-    const category = event.category.toLowerCase()
-    const typeMatch = normalizedType === 'all' ? true : category === normalizedType
-    return yearMatch && typeMatch
-  })
+  let rawEvents: any[] = []
+  let rawUpcoming: any[] = []
+  try {
+    const [eventsData, upcomingData] = await Promise.all([
+      queryApollo({
+        query: GET_EVENTS,
+        variables: { page, limit: EVENTS_PER_PAGE },
+        fetchPolicy: 'no-cache',
+      }),
+      queryApollo({ query: GET_UPCOMING_EVENTS, fetchPolicy: 'no-cache' }),
+    ])
+    rawEvents = (eventsData as any)?.events ?? []
+    rawUpcoming = (upcomingData as any)?.upcomingEvents ?? []
+  } catch (error) {
+    console.error('Failed to load events page data:', error)
+  }
 
-  const totalItems = filteredArchive.length
+  const archive: ArchiveEvent[] = rawEvents.map((event: any) => ({
+    category: event.type ?? 'Madaniy',
+    date: event.date,
+    title: event.title,
+    description: event.description ?? '',
+    image: normalizeRemoteImageUrl(event.coverPhoto),
+    alt: event.title,
+  }))
+
+  const upcoming: UpcomingEvent[] = rawUpcoming.map((event: any) => ({
+    badge: (event.type ?? 'EVENT').toUpperCase(),
+    badgeClassName: 'bg-secondary-container text-on-secondary-container',
+    title: event.title,
+    date: event.date,
+    location: event.location,
+    image: normalizeRemoteImageUrl(event.coverPhoto),
+    alt: event.title,
+  }))
+
+  const firstUpcoming = rawUpcoming[0]
+  const featured: FeaturedEvent = firstUpcoming
+    ? {
+        badge: 'KELGUSI TADBIR',
+        title: firstUpcoming.title,
+        date: firstUpcoming.date,
+        location: firstUpcoming.location,
+        description: firstUpcoming.description ?? '',
+        image: normalizeRemoteImageUrl(firstUpcoming.coverPhoto),
+        alt: firstUpcoming.title,
+      }
+    : {
+        badge: 'KELGUSI TADBIR',
+        title: rawEvents[0]?.title ?? '',
+        date: rawEvents[0]?.date ?? '',
+        location: rawEvents[0]?.location ?? '',
+        description: rawEvents[0]?.description ?? '',
+        image: normalizeRemoteImageUrl(rawEvents[0]?.coverPhoto),
+        alt: rawEvents[0]?.title ?? '',
+      }
+
+  const totalItems = EVENTS_TOTAL_COUNT
   const totalPages = Math.max(1, Math.ceil(totalItems / EVENTS_PER_PAGE))
   const safePage = Math.min(Math.max(1, page), totalPages)
   const startIndex = (safePage - 1) * EVENTS_PER_PAGE
-  const archive = filteredArchive.slice(startIndex, startIndex + EVENTS_PER_PAGE)
-  const start = totalItems === 0 ? 0 : startIndex + 1
-  const end = totalItems === 0 ? 0 : Math.min(startIndex + EVENTS_PER_PAGE, totalItems)
+  const start = archive.length === 0 ? 0 : startIndex + 1
+  const end = archive.length === 0 ? 0 : startIndex + archive.length
 
   return {
-    featured: FEATURED_EVENT,
-    upcoming: UPCOMING_EVENTS,
+    featured,
+    upcoming,
     archive,
     pagination: {
       page: safePage,
@@ -134,7 +200,7 @@ async function getEventsData(page: number, year: string, type: string): Promise<
       start,
       end,
       year,
-      type: normalizedType,
+      type,
     },
   }
 }
@@ -174,6 +240,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                   src={featured.image}
                   alt={featured.alt}
                   fill
+                  priority
                   sizes="(max-width: 1024px) 100vw, 60vw"
                   className="object-cover"
                 />
