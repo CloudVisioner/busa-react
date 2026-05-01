@@ -9,7 +9,7 @@ import {
   isValidAdminRole,
 } from '@/lib/auth/admin'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
   const isAdminPath = pathname.startsWith('/admin')
   const isMentorPath = pathname.startsWith('/mentor')

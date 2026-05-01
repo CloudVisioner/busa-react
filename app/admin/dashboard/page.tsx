@@ -5,6 +5,8 @@ import { queryApollo } from '@/lib/apollo/client'
 import { ADMIN_GET_EVENTS, ADMIN_GET_GALLERY, ADMIN_GET_PROJECTS, ADMIN_GET_TEAM, ADMIN_GET_VISA_ARTICLES } from '@/lib/apollo/queries'
 import { MdArticle, MdCalendarMonth, MdPhotoLibrary, MdRocketLaunch } from 'react-icons/md'
 
+export const dynamic = 'force-dynamic'
+
 type PagedItemsResponse<T> = {
   items: T[]
   total: number
@@ -30,16 +32,16 @@ export default async function AdminDashboardPage() {
   let eventsData: { events: PagedItemsResponse<EventItem> } | null = null
   let projectsData: { projects: PagedItemsResponse<ProjectItem> } | null = null
   let visaData: { visaArticles: PagedItemsResponse<VisaArticleItem> } | null = null
-  let galleryData: { gallery: PagedItemsResponse<GalleryItem> } | null = null
-  let teamData: { team: { items: TeamItem[] } } | null = null
+  let galleryData: { galleryPhotos: PagedItemsResponse<GalleryItem> } | null = null
+  let teamData: { teamMembers: PagedItemsResponse<TeamItem> } | null = null
 
   try {
     ;[eventsData, projectsData, visaData, galleryData, teamData] = await Promise.all([
-      queryApollo<{ events: PagedItemsResponse<EventItem> }>({ query: ADMIN_GET_EVENTS, variables: { page: 1, limit: 10 } }),
-      queryApollo<{ projects: PagedItemsResponse<ProjectItem> }>({ query: ADMIN_GET_PROJECTS, variables: { page: 1, limit: 10 } }),
-      queryApollo<{ visaArticles: PagedItemsResponse<VisaArticleItem> }>({ query: ADMIN_GET_VISA_ARTICLES, variables: { page: 1, limit: 200 } }),
-      queryApollo<{ gallery: PagedItemsResponse<GalleryItem> }>({ query: ADMIN_GET_GALLERY, variables: { page: 1, limit: 10 } }),
-      queryApollo<{ team: { items: TeamItem[] } }>({ query: ADMIN_GET_TEAM }),
+      queryApollo<{ events: PagedItemsResponse<EventItem> }>({ query: ADMIN_GET_EVENTS, variables: { page: 1, limit: 10 }, admin: true }),
+      queryApollo<{ projects: PagedItemsResponse<ProjectItem> }>({ query: ADMIN_GET_PROJECTS, variables: { page: 1, limit: 10 }, admin: true }),
+      queryApollo<{ visaArticles: PagedItemsResponse<VisaArticleItem> }>({ query: ADMIN_GET_VISA_ARTICLES, variables: { page: 1, limit: 200 }, admin: true }),
+      queryApollo<{ galleryPhotos: PagedItemsResponse<GalleryItem> }>({ query: ADMIN_GET_GALLERY, variables: { page: 1, limit: 10 }, admin: true }),
+      queryApollo<{ teamMembers: PagedItemsResponse<TeamItem> }>({ query: ADMIN_GET_TEAM, variables: { page: 1, limit: 10 }, admin: true }),
     ])
   } catch (error) {
     console.error('Failed to load admin dashboard data:', error)
@@ -49,7 +51,7 @@ export default async function AdminDashboardPage() {
   const totalProjects = projectsData?.projects?.total ?? 0
   const activeProjectsCount = (projectsData?.projects?.items ?? []).filter((project) => project.status?.toUpperCase() === 'ACTIVE').length || totalProjects
   const totalVisaArticles = visaData?.visaArticles?.total ?? 0
-  const totalGalleryPhotos = galleryData?.gallery?.total ?? 0
+  const totalGalleryPhotos = galleryData?.galleryPhotos?.total ?? 0
   const visaItems = visaData?.visaArticles?.items ?? []
 
   return (
@@ -83,7 +85,7 @@ export default async function AdminDashboardPage() {
         <section className="rounded-2xl bg-white p-5 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
           <h2 className="mb-4 text-lg font-semibold text-[#1d1d1f]">Mentorlar holati</h2>
           <div className="space-y-3">
-            {(teamData?.team?.items ?? []).slice(0, 5).map((mentor) => {
+            {(teamData?.teamMembers?.items ?? []).slice(0, 5).map((mentor) => {
               const articleCount = visaItems.filter((article) => article.author === mentor.name).length
               const status = articleCount > 0 ? 'Faol' : 'Nofaol'
               return (

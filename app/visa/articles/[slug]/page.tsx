@@ -10,6 +10,8 @@ import { GET_VISA_ARTICLE } from '@/lib/apollo/queries'
 import { ARTICLE_DETAILS } from '@/lib/constants/articleDetails'
 import type { ArticleDetail } from '@/lib/types/visa'
 
+export const dynamic = 'force-dynamic'
+
 interface VisaArticleDetailPageProps {
   params: Promise<{ slug: string }>
 }

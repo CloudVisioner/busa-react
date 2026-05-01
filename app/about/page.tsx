@@ -12,6 +12,8 @@ import { queryApollo } from '@/lib/apollo/client'
 import { GET_TEAM_MEMBERS, GET_TIMELINE } from '@/lib/apollo/queries'
 import { normalizeRemoteImageUrl } from '@/lib/utils/remoteImage'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AboutPage() {
   let teamMembersRaw: any[] = []
   let timelineRaw: any[] = []
@@ -21,8 +23,8 @@ export default async function AboutPage() {
       queryApollo({ query: GET_TEAM_MEMBERS }),
       queryApollo({ query: GET_TIMELINE }),
     ])
-    teamMembersRaw = (teamData as any)?.teamMembers ?? []
-    timelineRaw = (timelineData as any)?.timeline ?? []
+    teamMembersRaw = (teamData as any)?.teamMembers?.items ?? []
+    timelineRaw = (timelineData as any)?.timelines?.items ?? []
   } catch (error) {
     console.error('Failed to load about page content:', error)
   }
@@ -31,16 +33,16 @@ export default async function AboutPage() {
     name: m.name,
     role: m.role,
     joined: String(m.year),
-    photo: m.photo,
+    photo: normalizeRemoteImageUrl(m.photo),
   }))
 
   const timelineItems: TimelineItem[] = timelineRaw
     .slice()
-    .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+    .sort((a: any, b: any) => Number(a.year ?? 0) - Number(b.year ?? 0))
     .map((t: any) => ({
       year: String(t.year),
-      president: t.presidentName,
-      image: normalizeRemoteImageUrl(t.presidentPhoto),
+      president: t.presidentName ?? 'BUSA Team',
+      image: normalizeRemoteImageUrl(t.coverPhoto),
       did: t.description ?? '',
       changed: Array.isArray(t.achievements) ? t.achievements.join(' ') : (t.achievements ?? ''),
       philosophy: t.title ?? '',

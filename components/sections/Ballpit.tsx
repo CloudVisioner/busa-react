@@ -64,6 +64,7 @@ class ThreeController {
   #isAnimating = false
   #isVisible = false
   #boundResize = this.#onResize.bind(this)
+  #boundResizeNow = this.resize.bind(this)
   #boundIntersection = this.#onIntersection.bind(this)
   #boundVisibilityChange = this.#onVisibilityChange.bind(this)
 
@@ -147,7 +148,7 @@ class ThreeController {
 
   #onResize() {
     if (this.#resizeTimer) clearTimeout(this.#resizeTimer)
-    this.#resizeTimer = window.setTimeout(this.resize.bind(this), 100)
+    this.#resizeTimer = window.setTimeout(this.#boundResizeNow, 100)
   }
 
   resize() {
@@ -273,6 +274,7 @@ class ThreeController {
   }
 
   #onResizeCleanup() {
+    if (this.#resizeTimer) clearTimeout(this.#resizeTimer)
     window.removeEventListener('resize', this.#boundResize)
     this.#resizeObserver?.disconnect()
     this.#intersectionObserver?.disconnect()
@@ -538,14 +540,17 @@ class BallMesh extends InstancedMesh {
   physics: PhysicsEngine
   ambientLight: AmbientLight
   light: PointLight
+  pmremGenerator: PMREMGenerator
 
   constructor(renderer: WebGLRenderer, params: Partial<typeof BALL_CONFIG> = {}) {
     const config = { ...BALL_CONFIG, ...params }
-    const envTexture = new PMREMGenerator(renderer).fromScene(new RoomEnvironment()).texture
+    const pmremGenerator = new PMREMGenerator(renderer)
+    const envTexture = pmremGenerator.fromScene(new RoomEnvironment()).texture
     const geometry = new SphereGeometry()
     const material = new GooMaterial({ envMap: envTexture, ...config.materialParams })
     material.envMapRotation.x = -Math.PI / 2
     super(geometry, material, config.count)
+    this.pmremGenerator = pmremGenerator
     this.config = config
     this.physics = new PhysicsEngine(config)
     this.ambientLight = new AmbientLight(this.config.ambientColor, this.config.ambientIntensity)
@@ -595,6 +600,11 @@ class BallMesh extends InstancedMesh {
       if (idx === 0) this.light.position.copy(TMP.position)
     }
     this.instanceMatrix.needsUpdate = true
+  }
+
+  dispose(): void {
+    this.pmremGenerator.dispose()
+    super.dispose()
   }
 }
 

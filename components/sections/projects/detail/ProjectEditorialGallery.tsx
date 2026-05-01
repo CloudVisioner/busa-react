@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import MobileHorizontalScroller from '@/components/ui/MobileHorizontalScroller'
 import { cn } from '@/lib/utils/cn'
+import { FALLBACK_REMOTE_IMAGE, normalizeRemoteImageUrl } from '@/lib/utils/remoteImage'
 import type { ProjectDetailContent } from '@/lib/types/projectDetail'
 
 interface ProjectEditorialGalleryProps {
@@ -9,7 +10,21 @@ interface ProjectEditorialGalleryProps {
 }
 
 function ProjectEditorialGallery({ detail, className }: ProjectEditorialGalleryProps) {
-  const [a, b, c, d] = detail.galleryImages
+  const normalized = (detail.galleryImages ?? [])
+    .filter(Boolean)
+    .map((photo, index) => ({
+      src: normalizeRemoteImageUrl(photo?.src),
+      alt: photo?.alt?.trim() || `Project image ${index + 1}`,
+    }))
+
+  while (normalized.length < 4) {
+    normalized.push({
+      src: FALLBACK_REMOTE_IMAGE,
+      alt: `Project image ${normalized.length + 1}`,
+    })
+  }
+
+  const [a, b, c, d] = normalized
 
   return (
     <section className={cn('mx-auto max-w-7xl px-8 py-24 md:px-20', className)}>
@@ -21,8 +36,8 @@ function ProjectEditorialGallery({ detail, className }: ProjectEditorialGalleryP
       </div>
 
       <MobileHorizontalScroller className="-mx-8 md:hidden" viewportClassName="gap-4 px-8 pb-2">
-        {[a, b, c, d].map((photo) => (
-          <article key={photo.src} className="w-[85vw] shrink-0 snap-center overflow-hidden rounded-xl bg-white shadow-[0_8px_24px_rgba(25,28,30,0.12)]">
+        {[a, b, c, d].map((photo, index) => (
+          <article key={`${photo.src}-${index}`} className="w-[85vw] shrink-0 snap-center overflow-hidden rounded-xl bg-white shadow-[0_8px_24px_rgba(25,28,30,0.12)]">
             <div className="relative h-[220px] w-full">
               <Image src={photo.src} alt={photo.alt} fill sizes="85vw" className="object-cover" />
             </div>

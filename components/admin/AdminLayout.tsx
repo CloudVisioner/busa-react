@@ -52,7 +52,7 @@ export default function AdminLayout({ title, subtitle, children }: AdminLayoutPr
         <main className="p-6">
           <div className="mb-6">
             <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-            <p className="mt-1 text-sm text-[#6e6e73]">{subtitle ?? dateLabel}</p>
+            <p className="mt-1 text-sm text-[#6e6e73]" suppressHydrationWarning>{subtitle ?? dateLabel}</p>
           </div>
           {children}
         </main>

@@ -7,7 +7,7 @@ function resolveBackendUploadUrl(): string {
   if (explicit) return explicit.replace(/\/$/, '')
   const gql = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/graphql'
   const parsed = new URL(gql)
-  return `${parsed.origin}/upload`
+  return `${parsed.origin}/upload/image`
 }
 
 export async function POST(request: NextRequest) {
@@ -20,19 +20,36 @@ export async function POST(request: NextRequest) {
   const target = resolveBackendUploadUrl()
   const token = cookieStore.get(ADMIN_TOKEN_COOKIE)?.value
 
-  const formData = await request.formData()
+  let formData: FormData
+  try {
+    formData = await request.formData()
+  } catch {
+    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 })
+  }
 
   const headers = new Headers()
-  if (token && !token.startsWith('local-admin-')) {
+  if (token && token.startsWith('local-admin-')) {
+    return NextResponse.json(
+      { error: 'Upload requires backend auth token. Please sign in with API-backed admin account.' },
+      { status: 401 }
+    )
+  }
+  if (token) {
     headers.set('Authorization', `Bearer ${token}`)
   }
 
-  const upstream = await fetch(target, {
-    method: 'POST',
-    body: formData,
-    headers,
-    cache: 'no-store',
-  })
+  let upstream: Response
+  try {
+    upstream = await fetch(target, {
+      method: 'POST',
+      body: formData,
+      headers,
+      cache: 'no-store',
+    })
+  } catch (error) {
+    console.error('Upload upstream request failed:', error)
+    return NextResponse.json({ error: 'Upload service unreachable' }, { status: 502 })
+  }
 
   const contentType = upstream.headers.get('content-type') ?? 'application/json'
   const body = await upstream.arrayBuffer()

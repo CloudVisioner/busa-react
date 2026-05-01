@@ -7,7 +7,7 @@ interface VisaArticleItem {
   id: string
   title: string
   visaType: string
-  summary: string
+  description: string
   author: string
 }
 
@@ -25,7 +25,7 @@ const mentorName = process.env.NEXT_PUBLIC_MENTOR_NAME ?? 'Mentor'
 export default async function MentorDashboardPage() {
   let data: VisaQueryData | null = null
   try {
-    data = await queryApollo<VisaQueryData>({ query: ADMIN_GET_VISA_ARTICLES, variables: { page: 1, limit: 100 } })
+    data = await queryApollo<VisaQueryData>({ query: ADMIN_GET_VISA_ARTICLES, variables: { page: 1, limit: 100 }, admin: true })
   } catch (error) {
     console.error('Failed to load mentor dashboard data:', error)
   }
@@ -50,7 +50,7 @@ export default async function MentorDashboardPage() {
                 <p className="text-sm font-semibold text-[#1d1d1f]">{article.title}</p>
                 <Badge>{article.visaType}</Badge>
               </div>
-              <p className="mt-1 line-clamp-2 text-sm text-[#6e6e73]">{article.summary}</p>
+              <p className="mt-1 line-clamp-2 text-sm text-[#6e6e73]">{article.description}</p>
             </div>
           ))}
           {ownArticles.length === 0 ? <p className="text-sm text-[#6e6e73]">Hozircha maqolalar yo&apos;q.</p> : null}

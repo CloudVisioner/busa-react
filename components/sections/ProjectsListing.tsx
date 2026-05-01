@@ -10,7 +10,7 @@ interface ProjectsListingProps {
 }
 
 function ProjectsListing({ className, projects }: ProjectsListingProps) {
-  const data = projects ?? STATIC_PROJECTS
+  const data = projects && projects.length > 0 ? projects : STATIC_PROJECTS
   const countLabel = String(data.length).padStart(2, '0')
 
   return (

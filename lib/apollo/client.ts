@@ -1,35 +1,45 @@
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client'
+import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from '@apollo/client'
 import type { OperationVariables, QueryOptions } from '@apollo/client'
 
-const graphqlEndpoint = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL
-const hasGraphqlEndpoint = Boolean(graphqlEndpoint)
+const TOKEN_COOKIE = 'busa_admin_token'
 
-const httpLink = hasGraphqlEndpoint ? createHttpLink({ uri: graphqlEndpoint }) : null
-
-export const apolloClient = httpLink
-  ? new ApolloClient({
-      link: httpLink,
-      cache: new InMemoryCache(),
-    })
-  : null
-
-let hasWarnedAboutMissingEndpoint = false
-
-function warnAboutMissingEndpoint(): void {
-  if (process.env.NODE_ENV === 'development' && !hasWarnedAboutMissingEndpoint) {
-    hasWarnedAboutMissingEndpoint = true
-    console.warn('Skipping GraphQL request: set API_URL or NEXT_PUBLIC_API_URL to enable CMS data.')
-  }
+function getToken(): string {
+  if (typeof window === 'undefined') return ''
+  const match = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith(`${TOKEN_COOKIE}=`))
+  return match ? match.split('=')[1] : ''
 }
+
+const authLink = new ApolloLink((operation, forward) => {
+  const token = getToken()
+  operation.setContext({
+    headers: {
+      authorization: token ? `Bearer ${token}` : '',
+    },
+  })
+  return forward(operation)
+})
+
+const httpLink = new HttpLink({
+  uri: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/graphql',
+})
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache(),
+})
+
+export const apolloClient = client
 
 export async function queryApollo<TData = unknown, TVariables extends OperationVariables = OperationVariables>(
-  options: QueryOptions<TVariables, TData>
+  options: QueryOptions<TVariables, TData> & { admin?: boolean }
 ): Promise<TData | null> {
-  if (!apolloClient) {
-    warnAboutMissingEndpoint()
-    return null
-  }
-
-  const result = await apolloClient.query<TData, TVariables>(options)
+  const fetchPolicy = options.fetchPolicy ?? (options.admin ? 'network-only' : 'cache-first')
+  const queryOptions = { ...options, fetchPolicy } as QueryOptions<TVariables, TData>
+  delete (queryOptions as QueryOptions<TVariables, TData> & { admin?: boolean }).admin
+  const result = await apolloClient.query<TData, TVariables>(queryOptions)
   return result.data ?? null
 }
+
+export default client

@@ -1,11 +1,89 @@
 import { gql } from '@apollo/client'
 
+export const PAGINATED_EVENTS = gql`
+  query PaginatedEvents($pagination: PaginationInput) {
+    paginatedEvents(pagination: $pagination) {
+      items {
+        id
+        title
+        slug
+        date
+        location
+        description
+        coverPhoto
+        photos
+        attendance
+        type
+        isFeatured
+        createdAt
+      }
+      total
+      hasMore
+    }
+  }
+`
+
+export const GET_FEATURED_EVENT = gql`
+  query FeaturedEvent {
+    featuredEvent {
+      id
+      title
+      slug
+      type
+      date
+      location
+      attendance
+      description
+      coverPhoto
+      isFeatured
+    }
+  }
+`
+
+export const PAGINATED_VISA_ARTICLES = gql`
+  query PaginatedVisaArticles($pagination: PaginationInput) {
+    paginatedVisaArticles(pagination: $pagination) {
+      items {
+        id
+        title
+        slug
+        visaType
+        readTime
+        description
+        content
+        author
+        createdAt
+      }
+      total
+      hasMore
+    }
+  }
+`
+
+export const PAGINATED_GALLERY_PHOTOS = gql`
+  query PaginatedGalleryPhotos($pagination: PaginationInput) {
+    paginatedGalleryPhotos(pagination: $pagination) {
+      items {
+        id
+        src
+        alt
+        event
+        eventName
+        year
+        createdAt
+      }
+      total
+      hasMore
+    }
+  }
+`
+
 export const GET_EVENTS = gql`
   query GetEvents($page: Int, $limit: Int) {
     events(page: $page, limit: $limit) {
       items {
         id title slug date location
-        description coverPhoto type isUpcoming
+        description coverPhoto photos attendance type isFeatured
       }
       total page limit
     }
@@ -16,16 +94,7 @@ export const GET_EVENT = gql`
   query GetEvent($slug: String!) {
     event(slug: $slug) {
       id title slug date location
-      description coverPhoto type isUpcoming photos
-    }
-  }
-`
-
-export const GET_UPCOMING_EVENTS = gql`
-  query GetUpcomingEvents {
-    upcomingEvents {
-      id title slug date location
-      description coverPhoto type
+      description coverPhoto photos attendance type isFeatured
     }
   }
 `
@@ -49,8 +118,26 @@ export const GET_PROJECT = gql`
       coverPhoto category tags isFeatured
       heroImage heroEyebrow heroDisplayTitle
       heroSubtitle aboutTitle aboutParagraphs
-      features processTitle processSteps
-      galleryTitle gallerySubtitle galleryImages
+      features {
+        icon
+        title
+        description
+        elevated
+      }
+      processTitle
+      processSteps {
+        number
+        title
+        description
+      }
+      galleryTitle
+      gallerySubtitle
+      galleryImages {
+        src
+        alt
+        label
+        layout
+      }
       ctaTitle ctaSubtitle ctaPrimaryLabel
       ctaSecondaryLabel
     }
@@ -120,11 +207,12 @@ export const GET_TEAM_MEMBERS = gql`
 
 export const GET_TIMELINE = gql`
   query GetTimeline($page: Int, $limit: Int) {
-    timeline(page: $page, limit: $limit) {
+    timelines(page: $page, limit: $limit) {
       items {
         id year title description
-        presidentName presidentPhoto
-        achievements isDark order
+        presidentName
+        achievements coverPhoto
+        createdAt
       }
       total page limit
     }
@@ -133,8 +221,8 @@ export const GET_TIMELINE = gql`
 
 // Admin / Mentor panel queries
 export const ADMIN_GET_EVENTS = gql`
-  query GetEvents($page: Int, $limit: Int) {
-    events(page: $page, limit: $limit) {
+  query AdminPaginatedEvents($pagination: PaginationInput) {
+    paginatedEvents(pagination: $pagination) {
       items {
         id
         slug
@@ -142,12 +230,15 @@ export const ADMIN_GET_EVENTS = gql`
         type
         date
         location
+        attendance
+        isFeatured
         description
+        coverPhoto
         photos
+        createdAt
       }
       total
-      page
-      limit
+      hasMore
     }
   }
 `
@@ -157,13 +248,45 @@ export const ADMIN_GET_PROJECTS = gql`
     projects(page: $page, limit: $limit) {
       items {
         id
-        slug
         title
+        slug
+        summary
         description
-        status
         category
-        coverImage
-        gallery
+        coverPhoto
+        tags
+        isFeatured
+        heroImage
+        heroEyebrow
+        heroDisplayTitle
+        heroSubtitle
+        aboutTitle
+        aboutParagraphs
+        features {
+          icon
+          title
+          description
+          elevated
+        }
+        processTitle
+        processSteps {
+          number
+          title
+          description
+        }
+        galleryTitle
+        gallerySubtitle
+        galleryImages {
+          src
+          alt
+          label
+          layout
+        }
+        ctaTitle
+        ctaSubtitle
+        ctaPrimaryLabel
+        ctaSecondaryLabel
+        createdAt
       }
       total
       page
@@ -173,33 +296,55 @@ export const ADMIN_GET_PROJECTS = gql`
 `
 
 export const ADMIN_GET_VISA_ARTICLES = gql`
-  query GetVisaArticles($page: Int, $limit: Int) {
-    visaArticles(page: $page, limit: $limit) {
+  query AdminPaginatedVisaArticles($pagination: PaginationInput) {
+    paginatedVisaArticles(pagination: $pagination) {
       items {
         id
         slug
         title
         visaType
-        summary
+        description
         content
         author
-        authorRole
+        readTime
+        createdAt
       }
       total
-      page
-      limit
+      hasMore
     }
   }
 `
 
 export const ADMIN_GET_GALLERY = gql`
-  query GetGallery($page: Int, $limit: Int) {
-    gallery(page: $page, limit: $limit) {
+  query AdminPaginatedGallery($pagination: PaginationInput) {
+    paginatedGalleryPhotos(pagination: $pagination) {
       items {
         id
         src
         alt
-        category
+        event
+        eventName
+        year
+        createdAt
+      }
+      total
+      hasMore
+    }
+  }
+`
+
+export const ADMIN_GET_TEAM = gql`
+  query GetTeam($page: Int, $limit: Int) {
+    teamMembers(page: $page, limit: $limit) {
+      items {
+        id
+        name
+        role
+        photo
+        year
+        nimaqildi
+        quote
+        order
       }
       total
       page
@@ -208,30 +353,22 @@ export const ADMIN_GET_GALLERY = gql`
   }
 `
 
-export const ADMIN_GET_TEAM = gql`
-  query GetTeam {
-    team {
-      items {
-        id
-        name
-        role
-        department
-        bio
-        photo
-      }
-    }
-  }
-`
-
 export const ADMIN_GET_TIMELINE = gql`
-  query GetTimeline {
-    timeline {
+  query GetTimeline($page: Int, $limit: Int) {
+    timelines(page: $page, limit: $limit) {
       items {
         id
         year
         title
         description
+        presidentName
+        achievements
+        coverPhoto
+        createdAt
       }
+      total
+      page
+      limit
     }
   }
 `
@@ -241,8 +378,16 @@ export const CREATE_EVENT = gql`
   mutation CreateEvent($input: CreateEventInput!) {
     createEvent(input: $input) {
       id
-      slug
       title
+      slug
+      type
+      date
+      location
+      attendance
+      description
+      coverPhoto
+      photos
+      createdAt
     }
   }
 `
@@ -261,6 +406,16 @@ export const DELETE_EVENT = gql`
   mutation DeleteEvent($id: String!) {
     deleteEvent(id: $id) {
       id
+    }
+  }
+`
+
+export const SET_FEATURED_EVENT = gql`
+  mutation SetFeaturedEvent($id: String!) {
+    setFeaturedEvent(id: $id) {
+      id
+      title
+      isFeatured
     }
   }
 `
@@ -373,18 +528,23 @@ export const DELETE_TEAM_MEMBER = gql`
 
 // Timeline mutations
 export const CREATE_TIMELINE_ENTRY = gql`
-  mutation CreateTimelineEntry($input: CreateTimelineEntryInput!) {
-    createTimelineEntry(input: $input) {
+  mutation CreateTimeline($input: CreateTimelineInput!) {
+    createTimeline(input: $input) {
       id
       year
       title
+      description
+      presidentName
+      achievements
+      coverPhoto
+      createdAt
     }
   }
 `
 
 export const UPDATE_TIMELINE_ENTRY = gql`
-  mutation UpdateTimelineEntry($id: String!, $input: UpdateTimelineEntryInput!) {
-    updateTimelineEntry(id: $id, input: $input) {
+  mutation UpdateTimeline($id: String!, $input: UpdateTimelineInput!) {
+    updateTimeline(id: $id, input: $input) {
       id
       year
       title
@@ -394,7 +554,7 @@ export const UPDATE_TIMELINE_ENTRY = gql`
 
 export const DELETE_TIMELINE_ENTRY = gql`
   mutation DeleteTimelineEntry($id: String!) {
-    deleteTimelineEntry(id: $id) {
+    deleteTimeline(id: $id) {
       id
     }
   }

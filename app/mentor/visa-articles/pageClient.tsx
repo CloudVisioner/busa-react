@@ -7,12 +7,13 @@ import ConfirmModal from '@/components/admin/ConfirmModal'
 import DataTable from '@/components/admin/DataTable'
 import FormInput from '@/components/admin/FormInput'
 import FormSelect from '@/components/admin/FormSelect'
-import FormTextarea from '@/components/admin/FormTextarea'
 import MentorLayout from '@/components/admin/MentorLayout'
 import Modal from '@/components/admin/Modal'
+import RichTextEditor from '@/components/admin/RichTextEditor'
 import { useToast } from '@/components/admin/ToastProvider'
 import { ADMIN_GET_VISA_ARTICLES, CREATE_VISA_ARTICLE, DELETE_VISA_ARTICLE, UPDATE_VISA_ARTICLE } from '@/lib/apollo/queries'
 import { toSlug } from '@/lib/utils/toSlug'
+import { hasRichTextContent } from '@/lib/utils/richText'
 
 type VisaType = 'D2' | 'D10' | 'E7' | 'GENERAL'
 
@@ -21,10 +22,10 @@ interface VisaArticleItem {
   slug: string
   title: string
   visaType: VisaType
-  summary: string
+  description: string
   content: string
   author: string
-  authorRole: string
+  readTime: number
 }
 
 interface VisaArticlesQueryData {
@@ -41,10 +42,10 @@ interface FormState {
   title: string
   slug: string
   visaType: VisaType
-  summary: string
+  description: string
   content: string
   author: string
-  authorRole: string
+  readTime: string
 }
 
 const mentorName = process.env.NEXT_PUBLIC_MENTOR_NAME ?? 'Mentor'
@@ -53,10 +54,10 @@ const initialState: FormState = {
   title: '',
   slug: '',
   visaType: 'GENERAL',
-  summary: '',
+  description: '',
   content: '',
   author: mentorName,
-  authorRole: "Viza bo'yicha mentor",
+  readTime: '5',
 }
 
 export default function MentorVisaArticlesManager() {
@@ -90,27 +91,31 @@ export default function MentorVisaArticlesManager() {
       title: article.title,
       slug: article.slug,
       visaType: article.visaType ?? 'GENERAL',
-      summary: article.summary ?? '',
+      description: article.description ?? '',
       content: article.content ?? '',
       author: article.author ?? mentorName,
-      authorRole: article.authorRole ?? "Viza bo'yicha mentor",
+      readTime: String(article.readTime ?? 5),
     })
     setIsModalOpen(true)
   }
 
   async function submit() {
-    if (!form.title.trim() || !form.slug.trim() || !form.summary.trim()) {
+    if (!form.title.trim() || !form.slug.trim() || !form.readTime.trim()) {
       showToast('Majburiy maydonlarni to\'ldiring', 'error')
+      return
+    }
+    if (!hasRichTextContent(form.description) || !hasRichTextContent(form.content)) {
+      showToast('Description va Content majburiy', 'error')
       return
     }
     const input = {
       title: form.title.trim(),
       slug: form.slug.trim(),
       visaType: form.visaType,
-      summary: form.summary.trim(),
+      description: form.description.trim(),
       content: form.content.trim(),
       author: mentorName,
-      authorRole: form.authorRole.trim(),
+      readTime: Number(form.readTime),
     }
     try {
       if (form.id) {
@@ -154,7 +159,7 @@ export default function MentorVisaArticlesManager() {
         columns={[
           { key: 'title', header: 'Title', render: (item) => <span className="font-medium">{item.title}</span> },
           { key: 'visaType', header: 'Visa Type', render: (item) => <Badge>{item.visaType}</Badge> },
-          { key: 'summary', header: 'Summary', render: (item) => <span className="line-clamp-1 max-w-xs">{item.summary}</span> },
+          { key: 'description', header: 'Description', render: (item) => <span className="line-clamp-1 max-w-xs">{item.description}</span> },
           {
             key: 'actions',
             header: 'Actions',
@@ -197,14 +202,12 @@ export default function MentorVisaArticlesManager() {
             <option value="GENERAL">GENERAL</option>
           </FormSelect>
           <FormInput label="Author" readOnly value={mentorName} />
+          <FormInput label="Read Time (min)" onChange={(event) => setForm((prev) => ({ ...prev, readTime: event.target.value }))} type="number" value={form.readTime} />
           <div className="sm:col-span-2">
-            <FormInput label="Author Role" onChange={(event) => setForm((prev) => ({ ...prev, authorRole: event.target.value }))} value={form.authorRole} />
+            <RichTextEditor label="Description" onChange={(description) => setForm((prev) => ({ ...prev, description }))} content={form.description} />
           </div>
           <div className="sm:col-span-2">
-            <FormTextarea label="Summary" onChange={(event) => setForm((prev) => ({ ...prev, summary: event.target.value }))} value={form.summary} />
-          </div>
-          <div className="sm:col-span-2">
-            <FormTextarea label="Content" onChange={(event) => setForm((prev) => ({ ...prev, content: event.target.value }))} value={form.content} />
+            <RichTextEditor label="Content" onChange={(content) => setForm((prev) => ({ ...prev, content }))} content={form.content} />
           </div>
         </div>
         <div className="mt-4 flex justify-end gap-2">

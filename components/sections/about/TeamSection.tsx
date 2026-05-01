@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { cn } from '@/lib/utils/cn'
+import { FALLBACK_REMOTE_IMAGE } from '@/lib/utils/remoteImage'
 
 export interface TeamMember {
   name: string
@@ -94,7 +95,7 @@ export function TeamSection({ className, members }: TeamSectionProps) {
             >
               <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[12px] md:rounded-t-3xl">
                 <Image
-                  src={member.photo}
+                  src={member.photo || FALLBACK_REMOTE_IMAGE}
                   alt={member.name}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 25vw"

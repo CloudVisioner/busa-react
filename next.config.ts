@@ -30,6 +30,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'lqglelzzmnmbwtkgdiro.supabase.co',
+      },
+      {
+        protocol: 'https',
         hostname: 'placeholder.com',
       },
       {

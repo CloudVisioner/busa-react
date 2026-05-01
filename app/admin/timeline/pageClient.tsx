@@ -2,23 +2,33 @@
 
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@apollo/client/react'
+import Image from 'next/image'
 import AdminLayout from '@/components/admin/AdminLayout'
 import ConfirmModal from '@/components/admin/ConfirmModal'
 import FormInput from '@/components/admin/FormInput'
-import FormTextarea from '@/components/admin/FormTextarea'
+import FormSelect from '@/components/admin/FormSelect'
 import Modal from '@/components/admin/Modal'
+import RichTextEditor from '@/components/admin/RichTextEditor'
 import { useToast } from '@/components/admin/ToastProvider'
 import { ADMIN_GET_TIMELINE, CREATE_TIMELINE_ENTRY, DELETE_TIMELINE_ENTRY, UPDATE_TIMELINE_ENTRY } from '@/lib/apollo/queries'
+import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue'
+import { uploadImage } from '@/lib/upload'
+import { formatTableDate } from '@/lib/utils/date'
+import { hasRichTextContent } from '@/lib/utils/richText'
 
 interface TimelineItem {
   id: string
-  year: number
+  year: string
   title: string
   description: string
+  presidentName?: string | null
+  achievements?: string[]
+  coverPhoto?: string | null
+  createdAt?: string
 }
 
 interface TimelineQueryData {
-  timeline: {
+  timelines: {
     items: TimelineItem[]
   }
 }
@@ -28,18 +38,31 @@ interface TimelineFormState {
   year: string
   title: string
   description: string
+  presidentName: string
+  achievements: string[]
+  coverPhoto: string
 }
 
 const initialState: TimelineFormState = {
   year: '',
   title: '',
   description: '',
+  presidentName: '',
+  achievements: [],
+  coverPhoto: '',
 }
 
 export default function TimelineManager() {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState('ALL')
   const [form, setForm] = useState<TimelineFormState>(initialState)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [achievementInput, setAchievementInput] = useState('')
+  const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null)
+  const [coverPhotoPreview, setCoverPhotoPreview] = useState('')
   const { showToast } = useToast()
 
   const { data, loading, refetch } = useQuery<TimelineQueryData>(ADMIN_GET_TIMELINE, { fetchPolicy: 'network-only' })
@@ -47,12 +70,32 @@ export default function TimelineManager() {
   const [updateEntry, { loading: updating }] = useMutation(UPDATE_TIMELINE_ENTRY)
   const [deleteEntry, { loading: deleting }] = useMutation(DELETE_TIMELINE_ENTRY)
 
-  const rows = useMemo(() => {
-    return [...(data?.timeline.items ?? [])].sort((a, b) => Number(b.year) - Number(a.year))
-  }, [data?.timeline.items])
+  const debouncedSearch = useDebouncedValue(search, 400)
+  const filteredRows = useMemo(() => {
+    const query = debouncedSearch.trim().toLowerCase()
+    return [...(data?.timelines.items ?? [])]
+      .filter((item) => {
+        const matchesType = typeFilter === 'ALL' ? true : item.year === typeFilter
+        if (!query) return matchesType
+        return (
+          matchesType &&
+          `${item.year} ${item.title} ${item.description} ${item.presidentName ?? ''}`
+            .toLowerCase()
+            .includes(query)
+        )
+      })
+      .sort((a, b) => Number(b.year) - Number(a.year))
+  }, [data?.timelines.items, debouncedSearch, typeFilter])
+  const total = filteredRows.length
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const rows = filteredRows.slice((page - 1) * pageSize, page * pageSize)
+  const yearOptions = Array.from(new Set((data?.timelines.items ?? []).map((item) => item.year))).sort((a, b) => Number(b) - Number(a))
 
   function openCreate() {
     setForm(initialState)
+    setAchievementInput('')
+    setCoverPhotoFile(null)
+    setCoverPhotoPreview('')
     setIsModalOpen(true)
   }
 
@@ -62,7 +105,13 @@ export default function TimelineManager() {
       year: String(item.year),
       title: item.title ?? '',
       description: item.description ?? '',
+      presidentName: item.presidentName ?? '',
+      achievements: item.achievements ?? [],
+      coverPhoto: item.coverPhoto ?? '',
     })
+    setAchievementInput('')
+    setCoverPhotoFile(null)
+    setCoverPhotoPreview(item.coverPhoto ?? '')
     setIsModalOpen(true)
   }
 
@@ -71,14 +120,28 @@ export default function TimelineManager() {
       showToast("Year va title majburiy", 'error')
       return
     }
+    if (form.year.length !== 4) {
+      showToast('Year 4 ta raqam bo\'lishi kerak', 'error')
+      return
+    }
+    if (!hasRichTextContent(form.description)) {
+      showToast('Description kiriting', 'error')
+      return
+    }
 
     const input = {
-      year: Number(form.year),
+      year: form.year.trim(),
       title: form.title.trim(),
       description: form.description.trim(),
+      presidentName: form.presidentName.trim() || undefined,
+      achievements: form.achievements.length > 0 ? form.achievements : undefined,
+      coverPhoto: form.coverPhoto || undefined,
     }
 
     try {
+      if (coverPhotoFile) {
+        input.coverPhoto = await uploadImage(coverPhotoFile)
+      }
       if (form.id) {
         await updateEntry({ variables: { id: form.id, input } })
         showToast('Entry yangilandi')
@@ -88,6 +151,8 @@ export default function TimelineManager() {
       }
       setIsModalOpen(false)
       setForm(initialState)
+      setCoverPhotoFile(null)
+      setCoverPhotoPreview('')
       await refetch()
     } catch (error) {
       console.error(error)
@@ -110,10 +175,33 @@ export default function TimelineManager() {
 
   return (
     <AdminLayout title="Vaqt chizig'i">
-      <div className="mb-4 flex justify-end">
-        <button className="rounded-xl bg-[#00236f] px-4 py-2 text-sm font-semibold text-white hover:opacity-95" onClick={openCreate} type="button">
+      <div className="mb-4 space-y-3">
+        <p className="text-sm text-[#6e6e73]">Jami: {total} ta timeline</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-full max-w-xs">
+            <FormInput label="Qidirish" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
+          </div>
+          <div className="w-full max-w-xs">
+            <FormSelect label="Year filter" value={typeFilter} onChange={(event) => { setTypeFilter(event.target.value); setPage(1) }}>
+              <option value="ALL">Barchasi</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </FormSelect>
+          </div>
+          <div className="w-28">
+            <FormSelect label="Per page" value={String(pageSize)} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1) }}>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </FormSelect>
+          </div>
+          <button className="ml-auto rounded-xl bg-[#00236f] px-4 py-2 text-sm font-semibold text-white hover:opacity-95" onClick={openCreate} type="button">
           Qo&apos;shish
-        </button>
+          </button>
+        </div>
       </div>
 
       <div className="rounded-2xl bg-white p-4 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
@@ -127,6 +215,9 @@ export default function TimelineManager() {
                   <p className="text-base font-bold text-[#00236f]">{item.year}</p>
                   <p className="mt-1 text-sm font-semibold text-[#1d1d1f]">{item.title}</p>
                   <p className="mt-1 text-sm text-[#6e6e73]">{item.description}</p>
+                  <p className={`mt-1 text-xs ${formatTableDate(item.createdAt).invalid ? 'text-red-600' : 'text-[#6e6e73]'}`}>
+                    {formatTableDate(item.createdAt).label}
+                  </p>
                 </div>
                 <div className="ml-3 flex gap-2">
                   <button className="rounded-lg border border-black/10 px-2.5 py-1 text-xs hover:bg-[#f5f5f7]" onClick={() => openEdit(item)} type="button">
@@ -141,12 +232,111 @@ export default function TimelineManager() {
           </div>
         )}
       </div>
+      <div className="mt-4 flex items-center justify-end gap-2">
+        <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} className="rounded-lg border border-black/10 px-3 py-1 text-sm disabled:opacity-50">
+          Oldingi
+        </button>
+        {Array.from({ length: totalPages }, (_, index) => index + 1)
+          .filter((value) => value === 1 || value === totalPages || Math.abs(value - page) <= 1)
+          .map((value, index, list) => (
+            <span key={value} className="inline-flex items-center gap-2">
+              {index > 0 && value - list[index - 1] > 1 ? <span className="px-1">...</span> : null}
+              <button type="button" onClick={() => setPage(value)} className={`rounded-lg border px-3 py-1 text-sm ${value === page ? 'border-[#00236f] bg-[#00236f] text-white' : 'border-black/10'}`}>
+                {value}
+              </button>
+            </span>
+          ))}
+        <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page >= totalPages} className="rounded-lg border border-black/10 px-3 py-1 text-sm disabled:opacity-50">
+          Keyingi
+        </button>
+      </div>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title={form.id ? "Entry tahrirlash" : "Yangi entry"}>
         <div className="space-y-3">
-          <FormInput label="Year" onChange={(event) => setForm((prev) => ({ ...prev, year: event.target.value }))} type="number" value={form.year} />
+          <FormInput
+            label="Year"
+            inputMode="numeric"
+            maxLength={4}
+            onChange={(event) => setForm((prev) => ({ ...prev, year: event.target.value.replace(/\D/g, '').slice(0, 4) }))}
+            placeholder="YYYY"
+            value={form.year}
+          />
           <FormInput label="Title" onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} value={form.title} />
-          <FormTextarea label="Description" onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} value={form.description} />
+          <FormInput label="President Name" onChange={(event) => setForm((prev) => ({ ...prev, presidentName: event.target.value }))} value={form.presidentName} />
+          <RichTextEditor
+            label="Description"
+            content={form.description}
+            onChange={(description) => setForm((prev) => ({ ...prev, description }))}
+          />
+          <div>
+            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">Achievements</span>
+            <div className="flex gap-2">
+              <input
+                value={achievementInput}
+                onChange={(event) => setAchievementInput(event.target.value)}
+                className="block w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
+                placeholder="Add achievement"
+              />
+              <button
+                type="button"
+                className="rounded-xl border border-black/10 px-3 text-sm"
+                onClick={() => {
+                  if (!achievementInput.trim()) return
+                  setForm((prev) => ({
+                    ...prev,
+                    achievements: [...prev.achievements, achievementInput.trim()],
+                  }))
+                  setAchievementInput('')
+                }}
+              >
+                Add
+              </button>
+            </div>
+            {form.achievements.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {form.achievements.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className="rounded-full border border-black/10 px-3 py-1 text-xs"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        achievements: prev.achievements.filter((achievement) => achievement !== item),
+                      }))
+                    }
+                  >
+                    {item} x
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">Cover Photo</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="block w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (!file) return
+                setCoverPhotoFile(file)
+                setCoverPhotoPreview(URL.createObjectURL(file))
+              }}
+            />
+            {(coverPhotoPreview || form.coverPhoto) && (
+              <div className="relative mt-2 h-56 overflow-hidden rounded-xl border border-black/10 bg-[#f8f9fc]">
+                <Image
+                  src={coverPhotoPreview || form.coverPhoto}
+                  alt="Timeline preview"
+                  fill
+                  sizes="100vw"
+                  className="object-contain"
+                />
+              </div>
+            )}
+          </div>
         </div>
         <div className="mt-4 flex justify-end gap-2">
           <button className="rounded-xl border border-black/10 px-4 py-2 text-sm" onClick={() => setIsModalOpen(false)} type="button">

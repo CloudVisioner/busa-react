@@ -18,14 +18,19 @@ interface TeamMember {
   id: string
   name: string
   role: string
-  department?: string | null
-  bio?: string | null
+  year: number
+  nimaqildi?: string | null
+  quote?: string | null
+  order?: number | null
   photo?: string | null
 }
 
 interface TeamQueryData {
-  team: {
+  teamMembers: {
     items: TeamMember[]
+    total: number
+    page: number
+    limit: number
   }
 }
 
@@ -33,31 +38,38 @@ interface TeamFormState {
   id?: string
   name: string
   role: string
-  department: string
-  bio: string
+  year: string
+  nimaqildi: string
+  quote: string
+  order: string
   photo: string
 }
 
 const initialState: TeamFormState = {
   name: '',
   role: '',
-  department: '',
-  bio: '',
+  year: '',
+  nimaqildi: '',
+  quote: '',
+  order: '0',
   photo: '',
 }
 
 export default function TeamManager() {
+  const [page, setPage] = useState(1)
   const [form, setForm] = useState<TeamFormState>(initialState)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const { showToast } = useToast()
+  const limit = 10
 
-  const { data, loading, refetch } = useQuery<TeamQueryData>(ADMIN_GET_TEAM, { fetchPolicy: 'network-only' })
+  const { data, loading, refetch } = useQuery<TeamQueryData>(ADMIN_GET_TEAM, { variables: { page, limit }, fetchPolicy: 'network-only' })
   const [createTeamMember, { loading: creating }] = useMutation(CREATE_TEAM_MEMBER)
   const [updateTeamMember, { loading: updating }] = useMutation(UPDATE_TEAM_MEMBER)
   const [deleteTeamMember, { loading: deleting }] = useMutation(DELETE_TEAM_MEMBER)
 
-  const rows = data?.team.items ?? []
+  const rows = data?.teamMembers.items ?? []
+  const total = data?.teamMembers.total ?? 0
 
   function openCreate() {
     setForm(initialState)
@@ -69,25 +81,29 @@ export default function TeamManager() {
       id: member.id,
       name: member.name,
       role: member.role ?? '',
-      department: member.department ?? '',
-      bio: member.bio ?? '',
+      year: String(member.year ?? ''),
+      nimaqildi: member.nimaqildi ?? '',
+      quote: member.quote ?? '',
+      order: String(member.order ?? 0),
       photo: member.photo ?? '',
     })
     setIsModalOpen(true)
   }
 
   async function submit() {
-    if (!form.name.trim() || !form.role.trim()) {
-      showToast("Name va role majburiy", 'error')
+    if (!form.name.trim() || !form.role.trim() || !form.year.trim()) {
+      showToast('Name, role va year majburiy', 'error')
       return
     }
 
     const input = {
       name: form.name.trim(),
       role: form.role.trim(),
-      department: form.department.trim(),
-      bio: form.bio.trim(),
-      photo: form.photo.trim(),
+      year: Number(form.year),
+      nimaqildi: form.nimaqildi.trim() || undefined,
+      quote: form.quote.trim() || undefined,
+      order: Number(form.order || '0'),
+      photo: form.photo.trim() || undefined,
     }
 
     try {
@@ -100,10 +116,11 @@ export default function TeamManager() {
       }
       setIsModalOpen(false)
       setForm(initialState)
-      await refetch()
+      await refetch({ page, limit })
     } catch (error) {
       console.error(error)
-      showToast('Saqlashda xatolik', 'error')
+      const err = error as { graphQLErrors?: Array<{ message?: string }>; networkError?: { message?: string }; message?: string }
+      showToast(err.graphQLErrors?.[0]?.message || err.networkError?.message || err.message || 'Saqlashda xatolik', 'error')
     }
   }
 
@@ -112,7 +129,7 @@ export default function TeamManager() {
     try {
       await deleteTeamMember({ variables: { id: deleteId } })
       setDeleteId(null)
-      await refetch()
+      await refetch({ page, limit })
       showToast("A'zo o'chirildi")
     } catch (error) {
       console.error(error)
@@ -137,7 +154,7 @@ export default function TeamManager() {
           },
           { key: 'name', header: 'Ism', render: (item) => <span className="font-medium">{item.name}</span> },
           { key: 'role', header: 'Role', render: (item) => item.role || '-' },
-          { key: 'department', header: 'Department', render: (item) => item.department || '-' },
+          { key: 'year', header: 'Year', render: (item) => item.year ?? '-' },
           {
             key: 'actions',
             header: 'Actions',
@@ -154,21 +171,25 @@ export default function TeamManager() {
           },
         ]}
         emptyText={loading ? 'Yuklanmoqda...' : "A'zolar topilmadi"}
-        limit={10}
-        onNext={() => {}}
-        onPrev={() => {}}
-        page={1}
+        limit={limit}
+        onNext={() => setPage((current) => current + 1)}
+        onPrev={() => setPage((current) => Math.max(1, current - 1))}
+        page={page}
         rows={rows}
-        total={rows.length}
+        total={total}
       />
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title={form.id ? "A'zoni tahrirlash" : "Yangi a'zo"}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormInput label="Name" onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} value={form.name} />
           <FormInput label="Role" onChange={(event) => setForm((prev) => ({ ...prev, role: event.target.value }))} value={form.role} />
-          <FormInput label="Department" onChange={(event) => setForm((prev) => ({ ...prev, department: event.target.value }))} value={form.department} />
+          <FormInput label="Year" onChange={(event) => setForm((prev) => ({ ...prev, year: event.target.value }))} type="number" value={form.year} />
+          <FormInput label="Order" onChange={(event) => setForm((prev) => ({ ...prev, order: event.target.value }))} type="number" value={form.order} />
           <div className="sm:col-span-2">
-            <FormTextarea label="Bio" onChange={(event) => setForm((prev) => ({ ...prev, bio: event.target.value }))} value={form.bio} />
+            <FormInput label="Nima qildi" onChange={(event) => setForm((prev) => ({ ...prev, nimaqildi: event.target.value }))} value={form.nimaqildi} />
+          </div>
+          <div className="sm:col-span-2">
+            <FormTextarea label="Quote" onChange={(event) => setForm((prev) => ({ ...prev, quote: event.target.value }))} value={form.quote} />
           </div>
           <div className="sm:col-span-2">
             <ImageUpload label="Photo" onChange={(photo) => setForm((prev) => ({ ...prev, photo }))} value={form.photo} />

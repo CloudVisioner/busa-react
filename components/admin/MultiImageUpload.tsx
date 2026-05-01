@@ -11,6 +11,7 @@ interface MultiImageUploadProps {
 
 export default function MultiImageUpload({ label = 'Rasmlar', value, onChange, error }: MultiImageUploadProps) {
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   async function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files
@@ -18,6 +19,7 @@ export default function MultiImageUpload({ label = 'Rasmlar', value, onChange, e
 
     try {
       setUploading(true)
+      setUploadError(null)
       const uploadedUrls: string[] = []
 
       for (const file of Array.from(files)) {
@@ -25,11 +27,18 @@ export default function MultiImageUpload({ label = 'Rasmlar', value, onChange, e
         formData.append('file', file)
         const response = await fetch('/api/upload', {
           method: 'POST',
-          credentials: 'same-origin',
+          credentials: 'include',
           body: formData,
         })
         if (!response.ok) {
-          throw new Error('Upload failed')
+          let message = 'Upload failed'
+          try {
+            const payload = (await response.json()) as { error?: string; message?: string }
+            message = payload.error || payload.message || message
+          } catch {
+            // keep default
+          }
+          throw new Error(message)
         }
         const data = (await response.json()) as { url?: string }
         if (data.url) {
@@ -38,11 +47,17 @@ export default function MultiImageUpload({ label = 'Rasmlar', value, onChange, e
       }
 
       onChange([...value, ...uploadedUrls])
-    } catch (uploadError) {
-      console.error(uploadError)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Upload failed'
+      setUploadError(message)
+      console.error(err)
     } finally {
       setUploading(false)
     }
+  }
+
+  function removeUrl(urlToRemove: string) {
+    onChange(value.filter((url) => url !== urlToRemove))
   }
 
   return (
@@ -53,12 +68,16 @@ export default function MultiImageUpload({ label = 'Rasmlar', value, onChange, e
       {value.length > 0 ? (
         <ul className="mt-2 space-y-1">
           {value.map((url) => (
-            <li className="truncate text-xs text-[#00236f]" key={url}>
-              {url}
+            <li className="flex items-center gap-2" key={url}>
+              <span className="min-w-0 flex-1 truncate text-xs text-[#00236f]">{url}</span>
+              <button className="shrink-0 text-xs text-red-500 hover:text-red-700" onClick={() => removeUrl(url)} type="button">
+                ✕
+              </button>
             </li>
           ))}
         </ul>
       ) : null}
+      {uploadError ? <p className="mt-1 text-xs text-red-600">{uploadError}</p> : null}
       {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
     </div>
   )
