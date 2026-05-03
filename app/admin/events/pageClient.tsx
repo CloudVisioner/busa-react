@@ -12,11 +12,13 @@ import FormSelect from '@/components/admin/FormSelect'
 import Modal from '@/components/admin/Modal'
 import RichTextEditor from '@/components/admin/RichTextEditor'
 import { useToast } from '@/components/admin/ToastProvider'
-import { ADMIN_GET_EVENTS, CREATE_EVENT, DELETE_EVENT, SET_FEATURED_EVENT, UPDATE_EVENT } from '@/lib/apollo/queries'
+import { ADMIN_GET_EVENTS, CREATE_EVENT, DELETE_EVENT, SET_EVENT_STATUS, SET_FEATURED_EVENT, UPDATE_EVENT } from '@/lib/apollo/queries'
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue'
 import { uploadImage } from '@/lib/upload'
 import { formatTableDate } from '@/lib/utils/date'
+import { CoverPhotoPlaceholder } from '@/components/media/CoverPhotoPlaceholder'
 import { hasRichTextContent } from '@/lib/utils/richText'
+import { isRenderableCoverPhoto } from '@/lib/utils/coverPhoto'
 
 type EventType = 'MADANIY' | 'TRIP' | 'SPORT' | 'WORKSHOP' | 'EDUCATION'
 type EventTimelineStatus = 'UPCOMING' | 'PAST'
@@ -33,6 +35,7 @@ interface EventItem {
   coverPhoto?: string | null
   isFeatured?: boolean
   photos: string[]
+  status?: string | null
 }
 
 interface EventsQueryData {
@@ -97,11 +100,11 @@ export default function EventsManager() {
     variables: { pagination: queryPagination },
     fetchPolicy: 'network-only',
   })
-  const { data: upcomingSummaryData } = useQuery<EventsQueryData>(ADMIN_GET_EVENTS, {
+  const { data: upcomingSummaryData, refetch: refetchUpcomingSummary } = useQuery<EventsQueryData>(ADMIN_GET_EVENTS, {
     variables: { pagination: { limit: 1, offset: 0, status: 'UPCOMING' as EventTimelineStatus } },
     fetchPolicy: 'network-only',
   })
-  const { data: archiveSummaryData } = useQuery<EventsQueryData>(ADMIN_GET_EVENTS, {
+  const { data: archiveSummaryData, refetch: refetchArchiveSummary } = useQuery<EventsQueryData>(ADMIN_GET_EVENTS, {
     variables: { pagination: { limit: 1, offset: 0, status: 'PAST' as EventTimelineStatus } },
     fetchPolicy: 'network-only',
   })
@@ -109,6 +112,8 @@ export default function EventsManager() {
   const [updateEvent, { loading: updating }] = useMutation(UPDATE_EVENT)
   const [deleteEvent, { loading: deleting }] = useMutation(DELETE_EVENT)
   const [setFeaturedEvent, { loading: featuring }] = useMutation(SET_FEATURED_EVENT)
+  const [setEventStatus, { loading: togglingStatus }] = useMutation(SET_EVENT_STATUS)
+  const [statusToggleId, setStatusToggleId] = useState<string | null>(null)
 
   const rows = data?.paginatedEvents.items ?? []
   const total = data?.paginatedEvents.total ?? 0
@@ -126,6 +131,8 @@ export default function EventsManager() {
   }
 
   function openEdit(event: EventItem) {
+    const storedCover = event.coverPhoto?.trim() ?? ''
+    const coverPhoto = isRenderableCoverPhoto(storedCover) ? storedCover : ''
     setForm({
       id: event.id,
       title: event.title,
@@ -134,11 +141,19 @@ export default function EventsManager() {
       location: event.location ?? '',
       description: event.description ?? '',
       attendance: event.attendance ?? '',
-      coverPhoto: event.coverPhoto ?? event.photos?.[0] ?? '',
+      coverPhoto,
     })
     setCoverPhotoFile(null)
-    setCoverPhotoPreview(event.coverPhoto ?? '')
+    setCoverPhotoPreview(isRenderableCoverPhoto(event.coverPhoto) ? (event.coverPhoto ?? '') : '')
     setIsModalOpen(true)
+  }
+
+  async function refetchAllEventQueries() {
+    await Promise.all([
+      refetch({ pagination: queryPagination }),
+      refetchUpcomingSummary({ pagination: { limit: 1, offset: 0, status: 'UPCOMING' } }),
+      refetchArchiveSummary({ pagination: { limit: 1, offset: 0, status: 'PAST' } }),
+    ])
   }
 
   async function submit() {
@@ -156,9 +171,11 @@ export default function EventsManager() {
     }
 
     try {
-      let coverPhotoUrl = form.coverPhoto || undefined
+      let coverPhotoUrl: string | undefined
       if (coverPhotoFile) {
         coverPhotoUrl = await uploadImage(coverPhotoFile)
+      } else if (isRenderableCoverPhoto(form.coverPhoto)) {
+        coverPhotoUrl = form.coverPhoto.trim() || undefined
       }
 
       const input = {
@@ -182,7 +199,7 @@ export default function EventsManager() {
       setForm(initialState)
       setCoverPhotoFile(null)
       setCoverPhotoPreview('')
-      await refetch({ pagination: queryPagination })
+      await refetchAllEventQueries()
     } catch (error) {
       console.error(error)
       const err = error as { graphQLErrors?: Array<{ message?: string }>; networkError?: { message?: string }; message?: string }
@@ -197,7 +214,7 @@ export default function EventsManager() {
       await deleteEvent({ variables: { id: deleteId } })
       setDeleteId(null)
       showToast("Tadbir o'chirildi")
-      await refetch({ pagination: queryPagination })
+      await refetchAllEventQueries()
     } catch (error) {
       console.error(error)
       showToast("O'chirishda xatolik yuz berdi", 'error')
@@ -208,10 +225,28 @@ export default function EventsManager() {
     try {
       await setFeaturedEvent({ variables: { id } })
       showToast('Asosiy tadbir yangilandi')
-      await refetch({ pagination: queryPagination })
+      await refetchAllEventQueries()
     } catch (error) {
       console.error(error)
       showToast('Asosiy tadbirni belgilashda xatolik', 'error')
+    }
+  }
+
+  async function toggleEventTimelineStatus(item: EventItem) {
+    const current = (item.status ?? 'UPCOMING').toUpperCase() === 'PAST' ? 'PAST' : 'UPCOMING'
+    const next = current === 'UPCOMING' ? 'PAST' : 'UPCOMING'
+    setStatusToggleId(item.id)
+    try {
+      await setEventStatus({ variables: { id: item.id, status: next } })
+      showToast(next === 'UPCOMING' ? 'Upcoming qilindi' : 'Arxivga o‘tkazildi')
+      await refetchAllEventQueries()
+    } catch (error) {
+      console.error(error)
+      const err = error as { graphQLErrors?: Array<{ message?: string }>; networkError?: { message?: string }; message?: string }
+      const msg = err.graphQLErrors?.[0]?.message || err.networkError?.message || err.message || 'Holatni o‘zgartirib bo‘lmadi'
+      showToast(msg, 'error')
+    } finally {
+      setStatusToggleId(null)
     }
   }
 
@@ -292,6 +327,29 @@ export default function EventsManager() {
             },
           },
           { key: 'location', header: 'Joylashuv', render: (item) => item.location },
+          {
+            key: 'timeline',
+            header: 'Status',
+            render: (item) => {
+              const isPast = (item.status ?? 'UPCOMING').toUpperCase() === 'PAST'
+              const busy = statusToggleId === item.id || togglingStatus
+              return (
+                <button
+                  type="button"
+                  disabled={busy}
+                  title={isPast ? 'Arxivda — Upcoming qilish uchun bosing' : 'Upcoming — Arxivga o‘tkazish uchun bosing'}
+                  onClick={() => void toggleEventTimelineStatus(item)}
+                  className={`inline-flex min-w-[5.5rem] justify-center rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition ${
+                    isPast
+                      ? 'bg-slate-200 text-slate-800 ring-1 ring-slate-400/60 hover:bg-slate-300 disabled:opacity-60'
+                      : 'bg-emerald-100 text-emerald-900 ring-1 ring-emerald-400/70 hover:bg-emerald-200 disabled:opacity-60'
+                  }`}
+                >
+                  {isPast ? 'Archive' : 'Upcoming'}
+                </button>
+              )
+            },
+          },
           {
             key: 'actions',
             header: 'Amallar',
@@ -415,15 +473,19 @@ export default function EventsManager() {
                 setCoverPhotoPreview(URL.createObjectURL(file))
               }}
             />
-            {(coverPhotoPreview || form.coverPhoto) && (
+            {(coverPhotoPreview || form.coverPhoto.trim() !== '') && (
               <div className="relative mt-2 h-56 w-full overflow-hidden rounded-xl border border-black/10 bg-[#f8f9fc]">
-                <Image
-                  src={coverPhotoPreview || form.coverPhoto}
-                  alt="Cover preview"
-                  fill
-                  sizes="100vw"
-                  className="object-contain"
-                />
+                {coverPhotoPreview || isRenderableCoverPhoto(form.coverPhoto) ? (
+                  <Image
+                    src={coverPhotoPreview || form.coverPhoto.trim()}
+                    alt="Cover preview"
+                    fill
+                    sizes="100vw"
+                    className="object-contain"
+                  />
+                ) : (
+                  <CoverPhotoPlaceholder className="absolute inset-0" />
+                )}
               </div>
             )}
           </div>

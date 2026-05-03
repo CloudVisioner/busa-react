@@ -7,7 +7,6 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import ConfirmModal from '@/components/admin/ConfirmModal'
 import DataTable from '@/components/admin/DataTable'
 import FormInput from '@/components/admin/FormInput'
-import FormTextarea from '@/components/admin/FormTextarea'
 import ImageUpload from '@/components/admin/ImageUpload'
 import Modal from '@/components/admin/Modal'
 import { useToast } from '@/components/admin/ToastProvider'
@@ -19,8 +18,6 @@ interface TeamMember {
   name: string
   role: string
   year: number
-  nimaqildi?: string | null
-  quote?: string | null
   order?: number | null
   photo?: string | null
 }
@@ -39,8 +36,6 @@ interface TeamFormState {
   name: string
   role: string
   year: string
-  nimaqildi: string
-  quote: string
   order: string
   photo: string
 }
@@ -49,10 +44,14 @@ const initialState: TeamFormState = {
   name: '',
   role: '',
   year: '',
-  nimaqildi: '',
-  quote: '',
   order: '0',
   photo: '',
+}
+
+function parseNonNegativeOrder(raw: string): number {
+  const n = Number(raw)
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, Math.floor(n))
 }
 
 export default function TeamManager() {
@@ -63,7 +62,10 @@ export default function TeamManager() {
   const { showToast } = useToast()
   const limit = 10
 
-  const { data, loading, refetch } = useQuery<TeamQueryData>(ADMIN_GET_TEAM, { variables: { page, limit }, fetchPolicy: 'network-only' })
+  const { data, loading, error, refetch } = useQuery<TeamQueryData>(ADMIN_GET_TEAM, {
+    variables: { page, limit },
+    fetchPolicy: 'network-only',
+  })
   const [createTeamMember, { loading: creating }] = useMutation(CREATE_TEAM_MEMBER)
   const [updateTeamMember, { loading: updating }] = useMutation(UPDATE_TEAM_MEMBER)
   const [deleteTeamMember, { loading: deleting }] = useMutation(DELETE_TEAM_MEMBER)
@@ -82,9 +84,7 @@ export default function TeamManager() {
       name: member.name,
       role: member.role ?? '',
       year: String(member.year ?? ''),
-      nimaqildi: member.nimaqildi ?? '',
-      quote: member.quote ?? '',
-      order: String(member.order ?? 0),
+      order: String(parseNonNegativeOrder(String(member.order ?? 0))),
       photo: member.photo ?? '',
     })
     setIsModalOpen(true)
@@ -96,13 +96,12 @@ export default function TeamManager() {
       return
     }
 
+    const order = parseNonNegativeOrder(form.order)
     const input = {
       name: form.name.trim(),
       role: form.role.trim(),
       year: Number(form.year),
-      nimaqildi: form.nimaqildi.trim() || undefined,
-      quote: form.quote.trim() || undefined,
-      order: Number(form.order || '0'),
+      order,
       photo: form.photo.trim() || undefined,
     }
 
@@ -155,6 +154,7 @@ export default function TeamManager() {
           { key: 'name', header: 'Ism', render: (item) => <span className="font-medium">{item.name}</span> },
           { key: 'role', header: 'Role', render: (item) => item.role || '-' },
           { key: 'year', header: 'Year', render: (item) => item.year ?? '-' },
+          { key: 'order', header: 'Order', render: (item) => parseNonNegativeOrder(String(item.order ?? 0)) },
           {
             key: 'actions',
             header: 'Actions',
@@ -170,7 +170,20 @@ export default function TeamManager() {
             ),
           },
         ]}
-        emptyText={loading ? 'Yuklanmoqda...' : "A'zolar topilmadi"}
+        emptyText={
+          loading
+            ? 'Yuklanmoqda...'
+            : error
+              ? `Yuklashda xatolik: ${
+                  (typeof error === 'object' &&
+                    error &&
+                    'graphQLErrors' in error &&
+                    Array.isArray((error as { graphQLErrors: { message?: string }[] }).graphQLErrors) &&
+                    (error as { graphQLErrors: { message?: string }[] }).graphQLErrors[0]?.message) ||
+                  error.message
+                }`
+              : "A'zolar topilmadi"
+        }
         limit={limit}
         onNext={() => setPage((current) => current + 1)}
         onPrev={() => setPage((current) => Math.max(1, current - 1))}
@@ -184,15 +197,22 @@ export default function TeamManager() {
           <FormInput label="Name" onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} value={form.name} />
           <FormInput label="Role" onChange={(event) => setForm((prev) => ({ ...prev, role: event.target.value }))} value={form.role} />
           <FormInput label="Year" onChange={(event) => setForm((prev) => ({ ...prev, year: event.target.value }))} type="number" value={form.year} />
-          <FormInput label="Order" onChange={(event) => setForm((prev) => ({ ...prev, order: event.target.value }))} type="number" value={form.order} />
+          <FormInput
+            label="Order"
+            min={0}
+            step={1}
+            onChange={(event) => {
+              const v = event.target.value
+              setForm((prev) => ({
+                ...prev,
+                order: v === '' ? '' : String(parseNonNegativeOrder(v)),
+              }))
+            }}
+            type="number"
+            value={form.order}
+          />
           <div className="sm:col-span-2">
-            <FormInput label="Nima qildi" onChange={(event) => setForm((prev) => ({ ...prev, nimaqildi: event.target.value }))} value={form.nimaqildi} />
-          </div>
-          <div className="sm:col-span-2">
-            <FormTextarea label="Quote" onChange={(event) => setForm((prev) => ({ ...prev, quote: event.target.value }))} value={form.quote} />
-          </div>
-          <div className="sm:col-span-2">
-            <ImageUpload label="Photo" onChange={(photo) => setForm((prev) => ({ ...prev, photo }))} value={form.photo} />
+            <ImageUpload label="Photo" onChange={(photo) => setForm((prev) => ({ ...prev, photo }))} showPreview value={form.photo} />
           </div>
         </div>
         <div className="mt-4 flex justify-end gap-2">

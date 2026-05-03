@@ -1,29 +1,5 @@
 import { gql } from '@apollo/client'
 
-export const GET_PAGINATED_PROJECTS = gql`
-  query GetPaginatedProjects($pagination: PaginationInput) {
-    paginatedProjects(pagination: $pagination) {
-      items {
-        id
-        title
-        slug
-        description
-        coverPhoto
-        photos
-        icon
-        status
-        startDate
-        endDate
-        members
-        isFeatured
-        createdAt
-      }
-      total
-      hasMore
-    }
-  }
-`
-
 export const GET_PROJECT = gql`
   query GetProject($id: String!) {
     project(id: $id) {
@@ -33,12 +9,9 @@ export const GET_PROJECT = gql`
       description
       coverPhoto
       photos
-      icon
-      status
-      startDate
-      endDate
-      members
       isFeatured
+      createdAt
+      updatedAt
     }
   }
 `
@@ -52,12 +25,9 @@ export const GET_PROJECT_BY_SLUG = gql`
       description
       coverPhoto
       photos
-      icon
-      status
-      startDate
-      endDate
-      members
       isFeatured
+      createdAt
+      updatedAt
     }
   }
 `
@@ -70,12 +40,10 @@ export const GET_FEATURED_PROJECT = gql`
       slug
       description
       coverPhoto
-      icon
-      status
-      startDate
-      endDate
-      members
+      photos
       isFeatured
+      createdAt
+      updatedAt
     }
   }
 `
@@ -86,6 +54,12 @@ export const CREATE_PROJECT = gql`
       id
       title
       slug
+      description
+      coverPhoto
+      photos
+      isFeatured
+      createdAt
+      updatedAt
     }
   }
 `
@@ -96,6 +70,12 @@ export const UPDATE_PROJECT = gql`
       id
       title
       slug
+      description
+      coverPhoto
+      photos
+      isFeatured
+      createdAt
+      updatedAt
     }
   }
 `

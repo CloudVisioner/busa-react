@@ -19,10 +19,9 @@ import { hasRichTextContent } from '@/lib/utils/richText'
 interface TimelineItem {
   id: string
   year: string
-  title: string
   description: string
   presidentName?: string | null
-  achievements?: string[]
+  quote?: string | null
   coverPhoto?: string | null
   createdAt?: string
 }
@@ -36,19 +35,17 @@ interface TimelineQueryData {
 interface TimelineFormState {
   id?: string
   year: string
-  title: string
   description: string
   presidentName: string
-  achievements: string[]
+  quote: string
   coverPhoto: string
 }
 
 const initialState: TimelineFormState = {
   year: '',
-  title: '',
   description: '',
   presidentName: '',
-  achievements: [],
+  quote: '',
   coverPhoto: '',
 }
 
@@ -60,7 +57,6 @@ export default function TimelineManager() {
   const [form, setForm] = useState<TimelineFormState>(initialState)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [achievementInput, setAchievementInput] = useState('')
   const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null)
   const [coverPhotoPreview, setCoverPhotoPreview] = useState('')
   const { showToast } = useToast()
@@ -79,9 +75,7 @@ export default function TimelineManager() {
         if (!query) return matchesType
         return (
           matchesType &&
-          `${item.year} ${item.title} ${item.description} ${item.presidentName ?? ''}`
-            .toLowerCase()
-            .includes(query)
+          `${item.year} ${item.description} ${item.presidentName ?? ''} ${item.quote ?? ''}`.toLowerCase().includes(query)
         )
       })
       .sort((a, b) => Number(b.year) - Number(a.year))
@@ -93,7 +87,6 @@ export default function TimelineManager() {
 
   function openCreate() {
     setForm(initialState)
-    setAchievementInput('')
     setCoverPhotoFile(null)
     setCoverPhotoPreview('')
     setIsModalOpen(true)
@@ -103,21 +96,19 @@ export default function TimelineManager() {
     setForm({
       id: item.id,
       year: String(item.year),
-      title: item.title ?? '',
       description: item.description ?? '',
       presidentName: item.presidentName ?? '',
-      achievements: item.achievements ?? [],
+      quote: item.quote ?? '',
       coverPhoto: item.coverPhoto ?? '',
     })
-    setAchievementInput('')
     setCoverPhotoFile(null)
     setCoverPhotoPreview(item.coverPhoto ?? '')
     setIsModalOpen(true)
   }
 
   async function submit() {
-    if (!form.year.trim() || !form.title.trim()) {
-      showToast("Year va title majburiy", 'error')
+    if (!form.year.trim()) {
+      showToast('Year majburiy', 'error')
       return
     }
     if (form.year.length !== 4) {
@@ -131,10 +122,9 @@ export default function TimelineManager() {
 
     const input = {
       year: form.year.trim(),
-      title: form.title.trim(),
       description: form.description.trim(),
       presidentName: form.presidentName.trim() || undefined,
-      achievements: form.achievements.length > 0 ? form.achievements : undefined,
+      quote: form.quote.trim() || undefined,
       coverPhoto: form.coverPhoto || undefined,
     }
 
@@ -210,11 +200,16 @@ export default function TimelineManager() {
         ) : (
           <div className="space-y-3">
             {rows.map((item) => (
-              <div className="flex items-start justify-between rounded-xl border border-black/5 p-3" key={item.id}>
-                <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-start justify-between gap-3 overflow-hidden rounded-xl border border-black/5 p-3" key={item.id}>
+                <div className="min-w-0 flex-1 overflow-hidden">
                   <p className="text-base font-bold text-[#00236f]">{item.year}</p>
-                  <p className="mt-1 text-sm font-semibold text-[#1d1d1f]">{item.title}</p>
-                  <p className="mt-1 text-sm text-[#6e6e73]">{item.description}</p>
+                  {item.presidentName ? (
+                    <p className="mt-1 break-words text-sm font-semibold text-[#1d1d1f]">{item.presidentName}</p>
+                  ) : null}
+                  <p className="mt-1 line-clamp-4 break-words text-sm text-[#6e6e73] [overflow-wrap:anywhere]">{item.description}</p>
+                  {item.quote?.trim() ? (
+                    <p className="mt-1 line-clamp-2 text-sm italic text-[#6e6e73]">{item.quote}</p>
+                  ) : null}
                   <p className={`mt-1 text-xs ${formatTableDate(item.createdAt).invalid ? 'text-red-600' : 'text-[#6e6e73]'}`}>
                     {formatTableDate(item.createdAt).label}
                   </p>
@@ -261,57 +256,22 @@ export default function TimelineManager() {
             placeholder="YYYY"
             value={form.year}
           />
-          <FormInput label="Title" onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} value={form.title} />
           <FormInput label="President Name" onChange={(event) => setForm((prev) => ({ ...prev, presidentName: event.target.value }))} value={form.presidentName} />
           <RichTextEditor
             label="Description"
             content={form.description}
             onChange={(description) => setForm((prev) => ({ ...prev, description }))}
           />
-          <div>
-            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">Achievements</span>
-            <div className="flex gap-2">
-              <input
-                value={achievementInput}
-                onChange={(event) => setAchievementInput(event.target.value)}
-                className="block w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
-                placeholder="Add achievement"
-              />
-              <button
-                type="button"
-                className="rounded-xl border border-black/10 px-3 text-sm"
-                onClick={() => {
-                  if (!achievementInput.trim()) return
-                  setForm((prev) => ({
-                    ...prev,
-                    achievements: [...prev.achievements, achievementInput.trim()],
-                  }))
-                  setAchievementInput('')
-                }}
-              >
-                Add
-              </button>
-            </div>
-            {form.achievements.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {form.achievements.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className="rounded-full border border-black/10 px-3 py-1 text-xs"
-                    onClick={() =>
-                      setForm((prev) => ({
-                        ...prev,
-                        achievements: prev.achievements.filter((achievement) => achievement !== item),
-                      }))
-                    }
-                  >
-                    {item} x
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">Quote (italic block on About)</span>
+            <textarea
+              className="min-h-[88px] w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm text-[#1d1d1f] outline-none transition focus:border-[#00236f] focus:ring-2 focus:ring-[#00236f]/20"
+              onChange={(event) => setForm((prev) => ({ ...prev, quote: event.target.value }))}
+              placeholder="Masalan: “Jamoa kuchi individual qiyinchiliklarni yengadi.”"
+              rows={4}
+              value={form.quote}
+            />
+          </label>
           <div>
             <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">Cover Photo</span>
             <input

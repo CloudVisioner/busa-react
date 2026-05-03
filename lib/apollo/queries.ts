@@ -36,6 +36,51 @@ export const GET_FEATURED_EVENT = gql`
       description
       coverPhoto
       isFeatured
+      status
+    }
+  }
+`
+
+export const UPCOMING_EVENTS = gql`
+  query UpcomingEvents {
+    upcomingEvents {
+      id
+      title
+      slug
+      type
+      date
+      location
+      description
+      coverPhoto
+      photos
+      attendance
+      isFeatured
+      status
+      createdAt
+    }
+  }
+`
+
+export const PAST_EVENTS = gql`
+  query PastEvents($limit: Int!, $offset: Int!) {
+    pastEvents(limit: $limit, offset: $offset) {
+      items {
+        id
+        title
+        slug
+        type
+        date
+        location
+        description
+        coverPhoto
+        photos
+        attendance
+        isFeatured
+        status
+        createdAt
+      }
+      total
+      hasMore
     }
   }
 `
@@ -100,13 +145,17 @@ export const GET_EVENT = gql`
 `
 
 export const GET_PROJECTS = gql`
-  query GetProjects($page: Int, $limit: Int) {
-    projects(page: $page, limit: $limit) {
-      items {
-        id title slug summary description
-        coverPhoto category tags isFeatured
-      }
-      total page limit
+  query GetProjects {
+    projects {
+      id
+      title
+      slug
+      description
+      coverPhoto
+      photos
+      isFeatured
+      createdAt
+      updatedAt
     }
   }
 `
@@ -114,32 +163,15 @@ export const GET_PROJECTS = gql`
 export const GET_PROJECT = gql`
   query GetProject($slug: String!) {
     project(slug: $slug) {
-      id title slug summary description
-      coverPhoto category tags isFeatured
-      heroImage heroEyebrow heroDisplayTitle
-      heroSubtitle aboutTitle aboutParagraphs
-      features {
-        icon
-        title
-        description
-        elevated
-      }
-      processTitle
-      processSteps {
-        number
-        title
-        description
-      }
-      galleryTitle
-      gallerySubtitle
-      galleryImages {
-        src
-        alt
-        label
-        layout
-      }
-      ctaTitle ctaSubtitle ctaPrimaryLabel
-      ctaSecondaryLabel
+      id
+      title
+      slug
+      description
+      coverPhoto
+      photos
+      isFeatured
+      createdAt
+      updatedAt
     }
   }
 `
@@ -147,7 +179,15 @@ export const GET_PROJECT = gql`
 export const GET_FEATURED_PROJECTS = gql`
   query GetFeaturedProjects {
     featuredProjects {
-      id title slug summary coverPhoto category
+      id
+      title
+      slug
+      description
+      coverPhoto
+      photos
+      isFeatured
+      createdAt
+      updatedAt
     }
   }
 `
@@ -194,24 +234,26 @@ export const GET_GALLERY_PHOTOS = gql`
 `
 
 export const GET_TEAM_MEMBERS = gql`
-  query GetTeamMembers($page: Int, $limit: Int) {
+  query GetTeamMembers($page: Int!, $limit: Int!) {
     teamMembers(page: $page, limit: $limit) {
       items {
-        id name role photo year
-        nimaqildi quote order
+        id name role photo year order
       }
       total page limit
     }
   }
 `
 
+/** Public fetch: omit `quote` until the API schema exposes it — requesting unknown fields clears the whole query. */
 export const GET_TIMELINE = gql`
   query GetTimeline($page: Int, $limit: Int) {
     timelines(page: $page, limit: $limit) {
       items {
-        id year title description
+        id
+        year
+        description
         presidentName
-        achievements coverPhoto
+        coverPhoto
         createdAt
       }
       total page limit
@@ -235,6 +277,7 @@ export const ADMIN_GET_EVENTS = gql`
         description
         coverPhoto
         photos
+        status
         createdAt
       }
       total
@@ -244,53 +287,11 @@ export const ADMIN_GET_EVENTS = gql`
 `
 
 export const ADMIN_GET_PROJECTS = gql`
-  query GetProjects($page: Int, $limit: Int) {
-    projects(page: $page, limit: $limit) {
-      items {
-        id
-        title
-        slug
-        summary
-        description
-        category
-        coverPhoto
-        tags
-        isFeatured
-        heroImage
-        heroEyebrow
-        heroDisplayTitle
-        heroSubtitle
-        aboutTitle
-        aboutParagraphs
-        features {
-          icon
-          title
-          description
-          elevated
-        }
-        processTitle
-        processSteps {
-          number
-          title
-          description
-        }
-        galleryTitle
-        gallerySubtitle
-        galleryImages {
-          src
-          alt
-          label
-          layout
-        }
-        ctaTitle
-        ctaSubtitle
-        ctaPrimaryLabel
-        ctaSecondaryLabel
-        createdAt
-      }
-      total
-      page
-      limit
+  query AdminDashboardProjects {
+    projects {
+      id
+      title
+      coverPhoto
     }
   }
 `
@@ -333,8 +334,9 @@ export const ADMIN_GET_GALLERY = gql`
   }
 `
 
+/** Keep fields in sync with API `TeamMember` / `GET_TEAM_MEMBERS` — unknown fields break the whole query. */
 export const ADMIN_GET_TEAM = gql`
-  query GetTeam($page: Int, $limit: Int) {
+  query AdminGetTeam($page: Int!, $limit: Int!) {
     teamMembers(page: $page, limit: $limit) {
       items {
         id
@@ -342,8 +344,6 @@ export const ADMIN_GET_TEAM = gql`
         role
         photo
         year
-        nimaqildi
-        quote
         order
       }
       total
@@ -354,15 +354,14 @@ export const ADMIN_GET_TEAM = gql`
 `
 
 export const ADMIN_GET_TIMELINE = gql`
-  query GetTimeline($page: Int, $limit: Int) {
+  query AdminGetTimeline($page: Int, $limit: Int) {
     timelines(page: $page, limit: $limit) {
       items {
         id
         year
-        title
         description
         presidentName
-        achievements
+        quote
         coverPhoto
         createdAt
       }
@@ -420,31 +419,11 @@ export const SET_FEATURED_EVENT = gql`
   }
 `
 
-// Projects mutations
-export const CREATE_PROJECT = gql`
-  mutation CreateProject($input: CreateProjectInput!) {
-    createProject(input: $input) {
+export const SET_EVENT_STATUS = gql`
+  mutation SetEventStatus($id: String!, $status: String!) {
+    setEventStatus(id: $id, status: $status) {
       id
-      slug
-      title
-    }
-  }
-`
-
-export const UPDATE_PROJECT = gql`
-  mutation UpdateProject($id: String!, $input: UpdateProjectInput!) {
-    updateProject(id: $id, input: $input) {
-      id
-      slug
-      title
-    }
-  }
-`
-
-export const DELETE_PROJECT = gql`
-  mutation DeleteProject($id: String!) {
-    deleteProject(id: $id) {
-      id
+      status
     }
   }
 `
@@ -532,10 +511,9 @@ export const CREATE_TIMELINE_ENTRY = gql`
     createTimeline(input: $input) {
       id
       year
-      title
       description
       presidentName
-      achievements
+      quote
       coverPhoto
       createdAt
     }
@@ -547,7 +525,11 @@ export const UPDATE_TIMELINE_ENTRY = gql`
     updateTimeline(id: $id, input: $input) {
       id
       year
-      title
+      description
+      presidentName
+      quote
+      coverPhoto
+      createdAt
     }
   }
 `

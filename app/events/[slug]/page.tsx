@@ -7,11 +7,13 @@ import { FiCalendar, FiMapPin, FiStar, FiUsers } from 'react-icons/fi'
 import { queryApollo } from '@/lib/apollo/client'
 import { GET_EVENT } from '@/lib/apollo/queries'
 import { ROUTES } from '@/lib/constants/routes'
+import { CoverPhotoPlaceholder } from '@/components/media/CoverPhotoPlaceholder'
+import { CursorDrift } from '@/components/ui/CursorDrift'
+import { premiumHoverMedia, premiumHoverShadowCard } from '@/lib/ui/premiumHover'
+import { cn } from '@/lib/utils/cn'
+import { isRenderableCoverPhoto } from '@/lib/utils/coverPhoto'
 
 export const dynamic = 'force-dynamic'
-
-const FALLBACK_IMAGE =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAXt2abFkFh6yEwy_3ey2qEUQCv9amOCHWZY8me8Y5SM74QrfuQefp3mKTURYRh0d0UapnfrQdEeWLrxkGmk6X5iMEf8BIvpCc7KstV11jwVjCwcTpVVZNg2UpprF0L-GoIbNJAqIamermAf50BwXe7L9K90iSE8SZUAHU_5HfzLgj2tJvAwSu5d0vkRd_aQvR3IUd1H2JKS5xciMugYmaHA-zFAokR8QClk5jPbRmwMGfAZ8FYkSQvInuaGy01ikJepfpxI3YDvNU'
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>
@@ -52,7 +54,8 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
   const { slug } = await params
   const event = await resolveEvent(slug)
   const title = event?.title ?? slugToTitle(slug)
-  const heroImage = event?.coverPhoto ?? FALLBACK_IMAGE
+  const heroImage = event?.coverPhoto?.trim() ?? ''
+  const showHeroImage = isRenderableCoverPhoto(heroImage)
   const date = event?.date
     ? new Date(event.date).toLocaleDateString('en-GB', {
         day: '2-digit',
@@ -70,10 +73,16 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
       <Navbar />
       <main className="bg-[#f7f9fb] font-body text-[#191c1e]">
         <section className="relative h-[70vh] min-h-[420px] w-full overflow-hidden bg-[#00236f]">
-          <Image src={heroImage} alt={title} fill priority sizes="100vw" className="object-contain bg-[#0f172a] opacity-90" />
+          {showHeroImage ? (
+            <Image src={heroImage} alt={title} fill priority sizes="100vw" className="object-contain bg-[#0f172a] opacity-90" />
+          ) : (
+            <CoverPhotoPlaceholder className="absolute inset-0 h-full w-full bg-[#1e293b] text-slate-500" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#00236f] via-[#00236f]/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-8 pb-16">
-            <h1 className="font-headline text-6xl font-bold leading-[0.9] tracking-tighter text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] md:text-8xl">{title}</h1>
+          <div className="absolute inset-x-0 bottom-0 mx-auto w-full min-w-0 max-w-7xl px-4 pb-12 md:px-8 md:pb-16">
+            <h1 className="mx-auto max-w-full text-center font-headline text-4xl font-bold leading-[1.02] tracking-tighter text-white break-words [overflow-wrap:anywhere] drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] sm:text-5xl md:text-6xl md:leading-[0.95] lg:text-7xl xl:text-8xl">
+              {title}
+            </h1>
           </div>
         </section>
 
@@ -102,22 +111,31 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             {galleryPhotos.length > 0 ? (
               <section className="mt-8">
                 <h2 className="mb-4 font-headline text-2xl font-bold tracking-tight text-[#00236f]">Event Photos</h2>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="columns-2 gap-3 [column-fill:balance] md:columns-3">
                   {galleryPhotos.map((photo, index) => (
-                    <div
+                    <CursorDrift
+                      as="figure"
                       key={`${photo}-${index}`}
-                      className={`relative overflow-hidden rounded-xl border border-black/10 bg-[#f8f9fc] ${
-                        index % 5 === 0 ? 'h-56 sm:col-span-2' : index % 5 === 1 ? 'h-40' : index % 5 === 2 ? 'h-48' : index % 5 === 3 ? 'h-64' : 'h-44'
-                      }`}
+                      className={cn(
+                        'group m-0 mb-3 break-inside-avoid overflow-hidden rounded-xl border border-black/10 bg-[#f8f9fc]',
+                        premiumHoverShadowCard,
+                      )}
                     >
-                      <Image
-                        src={photo}
-                        alt={`${title} photo ${index + 1}`}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-contain"
-                      />
-                    </div>
+                      {isRenderableCoverPhoto(photo) ? (
+                        <Image
+                          src={photo.trim()}
+                          alt={`${title} photo ${index + 1}`}
+                          width={1400}
+                          height={1050}
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 28vw"
+                          className={cn('h-auto w-full object-contain', premiumHoverMedia)}
+                        />
+                      ) : (
+                        <div className="relative aspect-[4/3] w-full">
+                          <CoverPhotoPlaceholder className="absolute inset-0" />
+                        </div>
+                      )}
+                    </CursorDrift>
                   ))}
                 </div>
               </section>

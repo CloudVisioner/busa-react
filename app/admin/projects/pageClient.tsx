@@ -1,10 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@apollo/client/react'
 import Image from 'next/image'
 import AdminLayout from '@/components/admin/AdminLayout'
-import Badge from '@/components/admin/Badge'
 import ConfirmModal from '@/components/admin/ConfirmModal'
 import DataTable from '@/components/admin/DataTable'
 import FormInput from '@/components/admin/FormInput'
@@ -12,19 +11,15 @@ import FormSelect from '@/components/admin/FormSelect'
 import Modal from '@/components/admin/Modal'
 import RichTextEditor from '@/components/admin/RichTextEditor'
 import { useToast } from '@/components/admin/ToastProvider'
-import {
-  CREATE_PROJECT,
-  GET_PAGINATED_PROJECTS,
-  REMOVE_PROJECT,
-  SET_FEATURED_PROJECT,
-  UPDATE_PROJECT,
-} from '@/lib/apollo/projects'
+import { CoverPhotoPlaceholder } from '@/components/media/CoverPhotoPlaceholder'
+import { GET_PROJECTS } from '@/lib/apollo/queries'
+import { CREATE_PROJECT, REMOVE_PROJECT, SET_FEATURED_PROJECT, UPDATE_PROJECT } from '@/lib/apollo/projects'
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue'
 import { uploadImage } from '@/lib/upload'
-import { formatTableDate } from '@/lib/utils/date'
+import { isRenderableCoverPhoto } from '@/lib/utils/coverPhoto'
 import { hasRichTextContent } from '@/lib/utils/richText'
 
-type ProjectStatus = 'ACTIVE' | 'COMPLETED' | 'UPCOMING'
+const MAX_GALLERY_PHOTOS = 5
 
 interface ProjectItem {
   id: string
@@ -33,101 +28,76 @@ interface ProjectItem {
   description: string
   coverPhoto?: string | null
   photos: string[]
-  icon: string
-  status: ProjectStatus
-  startDate?: string | null
-  endDate?: string | null
-  members: string[]
   isFeatured?: boolean
   createdAt?: string
+  updatedAt?: string
 }
 
 interface ProjectsQueryData {
-  paginatedProjects: {
-    items: ProjectItem[]
-    total: number
-    hasMore: boolean
-  }
+  projects: ProjectItem[]
 }
 
 interface ProjectInputState {
   id?: string
   title: string
-  icon: string
-  status: ProjectStatus
-  startDate: string
-  endDate: string
-  members: string[]
   description: string
   coverPhoto: string
   photos: string[]
 }
 
-const ICON_OPTIONS = [
-  { value: '📚', label: "📚 Ta'lim (Education)" },
-  { value: '⚽', label: '⚽ Sport (Sports)' },
-  { value: '🎨', label: '🎨 Madaniyat (Culture)' },
-  { value: '💻', label: '💻 Texnologiya (Technology)' },
-  { value: '🤝', label: '🤝 Volontyorlik (Volunteer)' },
-  { value: '🎓', label: '🎓 Akademik (Academic)' },
-  { value: '📰', label: '📰 Media' },
-  { value: '🎭', label: "🎭 San'at (Art)" },
-  { value: '🏆', label: '🏆 Musobaqa (Competition)' },
-  { value: '🌍', label: '🌍 Xalqaro (International)' },
-] as const
-
 const initialState: ProjectInputState = {
   title: '',
-  icon: '📚',
-  status: 'ACTIVE',
-  startDate: '',
-  endDate: '',
-  members: [],
   description: '',
   coverPhoto: '',
   photos: [],
 }
 
-function normalizeDateInput(value: string): string {
-  const match = value.match(/^(\d{0,4})(?:-(\d{0,2}))?(?:-(\d{0,2}))?/)
-  if (!match) return ''
-  const [, year = '', month = '', day = ''] = match
-  if (!month) return year
-  if (!day) return `${year}-${month}`
-  return `${year}-${month}-${day}`
-}
+/**
+ * Build CreateProjectInput / UpdateProjectInput: only title, description, coverPhoto?, photos.
+ * - No slug, id, icon, status, dates, members (slug is server-generated).
+ * - Omit coverPhoto when empty — many APIs reject "" for optional URL fields (400 Bad Request).
+ * - photos: only non-empty strings (URLs), never File or other types.
+ */
+function buildProjectInput(form: ProjectInputState, coverPhotoUrl: string | undefined, photosRaw: unknown[]) {
+  const title = form.title.trim()
+  const description = form.description.trim()
 
-function getStatusVariant(status: ProjectStatus): 'green' | 'gray' | 'navy' {
-  if (status === 'ACTIVE') return 'green'
-  if (status === 'COMPLETED') return 'gray'
-  return 'navy'
+  const photos: string[] = (Array.isArray(photosRaw) ? photosRaw : [])
+    .filter((item): item is string => typeof item === 'string')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, MAX_GALLERY_PHOTOS)
+
+  const cover = (coverPhotoUrl ?? '').trim()
+
+  const input: { title: string; description: string; coverPhoto?: string; photos: string[] } = {
+    title,
+    description,
+    photos,
+  }
+  if (cover) {
+    input.coverPhoto = cover
+  }
+  return input
 }
 
 export default function ProjectsManager() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'ALL' | ProjectStatus>('ALL')
   const [form, setForm] = useState<ProjectInputState>(initialState)
-  const [memberInput, setMemberInput] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null)
   const [coverPhotoPreview, setCoverPhotoPreview] = useState('')
-  const [photosFiles, setPhotosFiles] = useState<File[]>([])
-  const [photosPreview, setPhotosPreview] = useState<string[]>([])
+  const [galleryUploading, setGalleryUploading] = useState(false)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+  const galleryPhotosRef = useRef<string[]>([])
+  galleryPhotosRef.current = form.photos
   const { showToast } = useToast()
   const debouncedSearch = useDebouncedValue(search, 400)
-  const offset = (page - 1) * pageSize
-  const queryPagination = {
-    limit: pageSize,
-    offset,
-    search: debouncedSearch.trim() || undefined,
-    status: statusFilter === 'ALL' ? undefined : statusFilter,
-  }
 
-  const { data, loading, refetch } = useQuery<ProjectsQueryData>(GET_PAGINATED_PROJECTS, {
-    variables: { pagination: queryPagination },
+  const { data, loading, refetch } = useQuery<ProjectsQueryData>(GET_PROJECTS, {
     fetchPolicy: 'network-only',
   })
   const [createProject, { loading: creating }] = useMutation(CREATE_PROJECT)
@@ -135,21 +105,32 @@ export default function ProjectsManager() {
   const [removeProject, { loading: deleting }] = useMutation(REMOVE_PROJECT)
   const [setFeaturedProject, { loading: featuring }] = useMutation(SET_FEATURED_PROJECT)
 
-  const rows = data?.paginatedProjects.items ?? []
-  const total = data?.paginatedProjects.total ?? 0
+  const allItems = data?.projects ?? []
+
+  const filteredItems = useMemo(() => {
+    const q = debouncedSearch.trim().toLowerCase()
+    if (!q) return allItems
+    return allItems.filter(
+      (p) => p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q),
+    )
+  }, [allItems, debouncedSearch])
+
+  const total = filteredItems.length
+
+  const rows = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return filteredItems.slice(start, start + pageSize)
+  }, [filteredItems, page, pageSize])
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const editing = useMemo(() => Boolean(form.id), [form.id])
 
   function resetFiles() {
     setCoverPhotoFile(null)
     setCoverPhotoPreview('')
-    setPhotosFiles([])
-    setPhotosPreview([])
   }
 
   function openCreate() {
     setForm(initialState)
-    setMemberInput('')
     resetFiles()
     setIsModalOpen(true)
   }
@@ -158,36 +139,50 @@ export default function ProjectsManager() {
     setForm({
       id: project.id,
       title: project.title,
-      icon: project.icon || '📚',
-      status: project.status || 'ACTIVE',
-      startDate: project.startDate ? project.startDate.slice(0, 10) : '',
-      endDate: project.endDate ? project.endDate.slice(0, 10) : '',
-      members: Array.isArray(project.members) ? project.members : [],
       description: project.description ?? '',
       coverPhoto: project.coverPhoto ?? '',
-      photos: Array.isArray(project.photos) ? project.photos.filter(Boolean) : [],
+      photos: Array.isArray(project.photos) ? project.photos.filter(Boolean).slice(0, MAX_GALLERY_PHOTOS) : [],
     })
-    setMemberInput('')
     setCoverPhotoFile(null)
     setCoverPhotoPreview(project.coverPhoto ?? '')
-    setPhotosFiles([])
-    setPhotosPreview(Array.isArray(project.photos) ? project.photos.filter(Boolean) : [])
     setIsModalOpen(true)
   }
 
-  function addMember() {
-    const value = memberInput.trim()
-    if (!value) return
-    if (form.members.includes(value)) {
-      setMemberInput('')
-      return
-    }
-    setForm((prev) => ({ ...prev, members: [...prev.members, value] }))
-    setMemberInput('')
+  function removeGalleryPhoto(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index),
+    }))
   }
 
-  function removeMember(member: string) {
-    setForm((prev) => ({ ...prev, members: prev.members.filter((item) => item !== member) }))
+  async function handleGalleryFilesSelected(fileList: FileList | null) {
+    if (!fileList?.length) return
+    const picked = Array.from(fileList).filter((f) => f.type.startsWith('image/'))
+    if (!picked.length) {
+      showToast('Faqat rasm fayllari', 'error')
+      return
+    }
+
+    setGalleryUploading(true)
+    try {
+      for (const file of picked) {
+        if (galleryPhotosRef.current.length >= MAX_GALLERY_PHOTOS) break
+        const url = await uploadImage(file)
+        setForm((prev) => {
+          if (prev.photos.length >= MAX_GALLERY_PHOTOS) return prev
+          const photos = [...prev.photos, url]
+          galleryPhotosRef.current = photos
+          return { ...prev, photos }
+        })
+      }
+    } catch (error) {
+      console.error(error)
+      const msg = error instanceof Error ? error.message : 'Rasm yuklashda xatolik'
+      showToast(msg, 'error')
+    } finally {
+      setGalleryUploading(false)
+      if (galleryInputRef.current) galleryInputRef.current.value = ''
+    }
   }
 
   async function submit() {
@@ -199,52 +194,27 @@ export default function ProjectsManager() {
       showToast('Description kiriting', 'error')
       return
     }
-    if (form.startDate && !/^\d{4}-\d{2}-\d{2}$/.test(form.startDate)) {
-      showToast('Start Date formati YYYY-MM-DD bo\'lishi kerak', 'error')
-      return
-    }
-    if (form.endDate && !/^\d{4}-\d{2}-\d{2}$/.test(form.endDate)) {
-      showToast('End Date formati YYYY-MM-DD bo\'lishi kerak', 'error')
-      return
-    }
 
     try {
-      let coverPhoto = form.coverPhoto || undefined
+      let coverPhotoUrl = form.coverPhoto.trim()
       if (coverPhotoFile) {
-        coverPhoto = await uploadImage(coverPhotoFile)
-      }
-
-      const uploadedPhotos: string[] = []
-      for (const file of photosFiles) {
-        uploadedPhotos.push(await uploadImage(file))
-      }
-
-      const input = {
-        ...(form.id ? { id: form.id } : {}),
-        title: form.title.trim(),
-        icon: form.icon,
-        status: form.status,
-        startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
-        endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
-        members: form.members.map((member) => member.trim()).filter(Boolean),
-        description: form.description.trim(),
-        coverPhoto,
-        photos: [...form.photos, ...uploadedPhotos].filter(Boolean),
+        coverPhotoUrl = await uploadImage(coverPhotoFile)
       }
 
       if (form.id) {
+        const input = { id: form.id, ...buildProjectInput(form, coverPhotoUrl, form.photos) }
         await updateProject({ variables: { input } })
         showToast('Loyiha yangilandi')
       } else {
+        const input = buildProjectInput(form, coverPhotoUrl, form.photos)
         await createProject({ variables: { input } })
         showToast('Loyiha yaratildi')
       }
 
       setIsModalOpen(false)
       setForm(initialState)
-      setMemberInput('')
       resetFiles()
-      await refetch({ pagination: queryPagination })
+      await refetch()
     } catch (error) {
       console.error(error)
       const err = error as { graphQLErrors?: Array<{ message?: string }>; networkError?: { message?: string }; message?: string }
@@ -259,7 +229,7 @@ export default function ProjectsManager() {
       await removeProject({ variables: { id: deleteId } })
       setDeleteId(null)
       showToast("Loyiha o'chirildi")
-      await refetch({ pagination: queryPagination })
+      await refetch()
     } catch (error) {
       console.error(error)
       showToast("O'chirishda xatolik yuz berdi", 'error')
@@ -270,12 +240,14 @@ export default function ProjectsManager() {
     try {
       await setFeaturedProject({ variables: { id } })
       showToast('Asosiy loyiha yangilandi')
-      await refetch({ pagination: queryPagination })
+      await refetch()
     } catch (error) {
       console.error(error)
       showToast('Asosiy loyihani belgilashda xatolik', 'error')
     }
   }
+
+  const gallerySlotsLeft = MAX_GALLERY_PHOTOS - form.photos.length
 
   return (
     <AdminLayout title="Loyihalar">
@@ -291,21 +263,6 @@ export default function ProjectsManager() {
                 setPage(1)
               }}
             />
-          </div>
-          <div className="w-full max-w-xs">
-            <FormSelect
-              label="Status"
-              value={statusFilter}
-              onChange={(event) => {
-                setStatusFilter(event.target.value as 'ALL' | ProjectStatus)
-                setPage(1)
-              }}
-            >
-              <option value="ALL">Barchasi</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="COMPLETED">COMPLETED</option>
-              <option value="UPCOMING">UPCOMING</option>
-            </FormSelect>
           </div>
           <div className="w-28">
             <FormSelect
@@ -333,26 +290,27 @@ export default function ProjectsManager() {
 
       <DataTable
         columns={[
+          {
+            key: 'cover',
+            header: 'Rasm',
+            render: (item) => (
+              <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-[#f5f5f7]">
+                {isRenderableCoverPhoto(item.coverPhoto) ? (
+                  <Image
+                    src={item.coverPhoto!}
+                    alt={item.title}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                    loading="eager"
+                  />
+                ) : (
+                  <CoverPhotoPlaceholder className="h-full w-full" />
+                )}
+              </div>
+            ),
+          },
           { key: 'title', header: 'Sarlavha', render: (item) => <span className="font-medium">{item.title}</span> },
-          { key: 'icon', header: 'Icon', render: (item) => <span className="text-lg leading-none">{item.icon || '📚'}</span> },
-          { key: 'status', header: 'Status', render: (item) => <Badge variant={getStatusVariant(item.status)}>{item.status}</Badge> },
-          {
-            key: 'startDate',
-            header: 'Boshlanish',
-            render: (item) => {
-              const formatted = formatTableDate(item.startDate)
-              return <span className={formatted.invalid ? 'text-red-600' : ''}>{formatted.label}</span>
-            },
-          },
-          {
-            key: 'endDate',
-            header: 'Tugash',
-            render: (item) => {
-              const formatted = formatTableDate(item.endDate)
-              return <span className={formatted.invalid ? 'text-red-600' : ''}>{formatted.label}</span>
-            },
-          },
-          { key: 'members', header: "A'zolar", render: (item) => `${item.members?.length ?? 0}` },
           {
             key: 'actions',
             header: 'Amallar',
@@ -431,83 +389,12 @@ export default function ProjectsManager() {
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title={editing ? 'Loyihani tahrirlash' : 'Yangi loyiha'}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <FormInput
-            label="Title"
-            onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-            value={form.title}
-          />
-          <FormSelect
-            label="Icon"
-            value={form.icon}
-            onChange={(event) => setForm((prev) => ({ ...prev, icon: event.target.value }))}
-          >
-            {ICON_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </FormSelect>
-          <FormSelect
-            label="Status"
-            value={form.status}
-            onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as ProjectStatus }))}
-          >
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="COMPLETED">COMPLETED</option>
-            <option value="UPCOMING">UPCOMING</option>
-          </FormSelect>
-          <FormInput
-            label="Start Date"
-            min="1000-01-01"
-            max="9999-12-31"
-            type="date"
-            value={form.startDate}
-            onChange={(event) => setForm((prev) => ({ ...prev, startDate: normalizeDateInput(event.target.value) }))}
-          />
-          <FormInput
-            label="End Date"
-            min="1000-01-01"
-            max="9999-12-31"
-            type="date"
-            value={form.endDate}
-            onChange={(event) => setForm((prev) => ({ ...prev, endDate: normalizeDateInput(event.target.value) }))}
-          />
-
           <div className="sm:col-span-2">
-            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">A&apos;zolar</span>
-            <div className="flex gap-2">
-              <input
-                value={memberInput}
-                onChange={(event) => setMemberInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault()
-                    addMember()
-                  }
-                }}
-                className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#00236f] focus:ring-2 focus:ring-[#00236f]/20"
-                placeholder="Ism kiriting"
-              />
-              <button
-                type="button"
-                className="rounded-xl border border-black/10 px-3 py-2 text-sm hover:bg-[#f5f5f7]"
-                onClick={addMember}
-              >
-                Qo&apos;shish
-              </button>
-            </div>
-            {form.members.length > 0 ? (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {form.members.map((member) => (
-                  <span key={member} className="inline-flex items-center gap-2 rounded-full bg-[#eef3ff] px-3 py-1 text-xs font-medium text-[#00236f]">
-                    {member}
-                    <button type="button" className="text-[#6e6e73] hover:text-red-600" onClick={() => removeMember(member)}>
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
-            ) : null}
+            <FormInput
+              label="Title"
+              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+              value={form.title}
+            />
           </div>
 
           <div className="sm:col-span-2">
@@ -519,7 +406,7 @@ export default function ProjectsManager() {
           </div>
 
           <div className="sm:col-span-2">
-            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">Cover Photo</span>
+            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">Cover photo</span>
             <input
               type="file"
               accept="image/*"
@@ -545,28 +432,48 @@ export default function ProjectsManager() {
           </div>
 
           <div className="sm:col-span-2">
-            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">Photos</span>
+            <span className="mb-1.5 block text-sm font-medium text-[#1d1d1f]">
+              Rasmlar (maks. {MAX_GALLERY_PHOTOS}) — {form.photos.length} / {MAX_GALLERY_PHOTOS}
+            </span>
             <input
+              ref={galleryInputRef}
               type="file"
               accept="image/*"
               multiple
-              className="block w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm"
+              className="sr-only"
               onChange={(event) => {
-                const files = Array.from(event.target.files ?? [])
-                if (files.length === 0) return
-                setPhotosFiles(files)
-                setPhotosPreview(files.map((file) => URL.createObjectURL(file)))
+                void handleGalleryFilesSelected(event.target.files)
               }}
             />
-            {(photosPreview.length > 0 || form.photos.length > 0) && (
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {[...(photosPreview.length > 0 ? photosPreview : []), ...(photosPreview.length === 0 ? form.photos : [])].map((src, index) => (
-                  <div key={`${src}-${index}`} className="relative h-24 overflow-hidden rounded-lg border border-black/10 bg-[#f8f9fc]">
-                    <Image src={src} alt={`Photo preview ${index + 1}`} fill sizes="25vw" className="object-cover" />
+            <button
+              type="button"
+              disabled={gallerySlotsLeft <= 0 || galleryUploading}
+              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#00236f] hover:bg-[#f5f5f7] disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => galleryInputRef.current?.click()}
+            >
+              {galleryUploading ? 'Yuklanmoqda...' : "Rasmlar qo'shish"}
+            </button>
+            {gallerySlotsLeft <= 0 ? (
+              <p className="mt-2 text-xs text-[#6e6e73]">Limit to‘ldi ({MAX_GALLERY_PHOTOS} ta).</p>
+            ) : null}
+
+            {form.photos.length > 0 ? (
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+                {form.photos.map((src, index) => (
+                  <div key={`${src}-${index}`} className="group relative aspect-square overflow-hidden rounded-lg border border-black/10 bg-[#f8f9fc]">
+                    <Image src={src} alt={`Rasm ${index + 1}`} fill sizes="120px" className="object-cover" />
+                    <button
+                      type="button"
+                      className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-sm font-bold text-white hover:bg-black/80"
+                      onClick={() => removeGalleryPhoto(index)}
+                      aria-label="Rasmni olib tashlash"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
         <div className="mt-4 flex justify-end gap-2">

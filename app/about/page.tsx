@@ -19,22 +19,42 @@ export default async function AboutPage() {
   let timelineRaw: any[] = []
 
   try {
-    const [teamData, timelineData] = await Promise.all([
-      queryApollo({ query: GET_TEAM_MEMBERS }),
-      queryApollo({ query: GET_TIMELINE }),
-    ])
+    const teamData = await queryApollo({
+      query: GET_TEAM_MEMBERS,
+      variables: { page: 1, limit: 200 },
+      fetchPolicy: 'network-only',
+    })
     teamMembersRaw = (teamData as any)?.teamMembers?.items ?? []
-    timelineRaw = (timelineData as any)?.timelines?.items ?? []
   } catch (error) {
-    console.error('Failed to load about page content:', error)
+    console.error('Failed to load team members:', error)
   }
 
-  const members: TeamMember[] = teamMembersRaw.map((m: any) => ({
-    name: m.name,
-    role: m.role,
-    joined: String(m.year),
-    photo: normalizeRemoteImageUrl(m.photo),
-  }))
+  try {
+    const timelineData = await queryApollo({
+      query: GET_TIMELINE,
+      variables: { page: 1, limit: 100 },
+      fetchPolicy: 'network-only',
+    })
+    timelineRaw = (timelineData as any)?.timelines?.items ?? []
+  } catch (error) {
+    console.error('Failed to load timeline:', error)
+  }
+
+  const members: TeamMember[] = teamMembersRaw
+    .slice()
+    .sort((a: any, b: any) => {
+      const oa = a.order ?? 0
+      const ob = b.order ?? 0
+      if (oa !== ob) return Number(oa) - Number(ob)
+      return Number(a.year ?? 0) - Number(b.year ?? 0)
+    })
+    .map((m: any) => ({
+      id: m.id,
+      name: m.name,
+      role: m.role,
+      joined: m.year != null ? String(m.year) : '',
+      photo: normalizeRemoteImageUrl(m.photo),
+    }))
 
   const timelineItems: TimelineItem[] = timelineRaw
     .slice()
@@ -44,8 +64,8 @@ export default async function AboutPage() {
       president: t.presidentName ?? 'BUSA Team',
       image: normalizeRemoteImageUrl(t.coverPhoto),
       did: t.description ?? '',
-      changed: Array.isArray(t.achievements) ? t.achievements.join(' ') : (t.achievements ?? ''),
-      philosophy: t.title ?? '',
+      changed: '',
+      philosophy: '',
       vision: '',
     }))
 
@@ -57,7 +77,7 @@ export default async function AboutPage() {
         <OurStory />
         <Timeline items={timelineItems.length > 0 ? timelineItems : undefined} />
         <Values />
-        <TeamSection members={members.length > 0 ? members : undefined} />
+        <TeamSection members={members} />
         <JoinCTA variant="plain" />
         <Footer />
       </main>

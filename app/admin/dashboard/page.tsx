@@ -14,8 +14,14 @@ type PagedItemsResponse<T> = {
   limit: number
 }
 
+type PaginatedConnection<T> = {
+  items: T[]
+  total: number
+  hasMore?: boolean
+}
+
 type EventItem = { id: string }
-type ProjectItem = { id: string; status?: string | null }
+type ProjectItem = { id: string; title?: string | null; coverPhoto?: string | null }
 type VisaArticleItem = { id: string; author?: string | null }
 type GalleryItem = { id: string }
 type TeamItem = { id: string; name: string; role?: string | null }
@@ -29,36 +35,53 @@ const RECENT_ACTIVITY = [
 ]
 
 export default async function AdminDashboardPage() {
-  let eventsData: { events: PagedItemsResponse<EventItem> } | null = null
-  let projectsData: { projects: PagedItemsResponse<ProjectItem> } | null = null
-  let visaData: { visaArticles: PagedItemsResponse<VisaArticleItem> } | null = null
-  let galleryData: { galleryPhotos: PagedItemsResponse<GalleryItem> } | null = null
+  let eventsData: { paginatedEvents: PaginatedConnection<EventItem> } | null = null
+  let projectsData: { projects: ProjectItem[] } | null = null
+  let visaData: { paginatedVisaArticles: PaginatedConnection<VisaArticleItem> } | null = null
+  let galleryData: { paginatedGalleryPhotos: PaginatedConnection<GalleryItem> } | null = null
   let teamData: { teamMembers: PagedItemsResponse<TeamItem> } | null = null
 
   try {
-    ;[eventsData, projectsData, visaData, galleryData, teamData] = await Promise.all([
-      queryApollo<{ events: PagedItemsResponse<EventItem> }>({ query: ADMIN_GET_EVENTS, variables: { page: 1, limit: 10 }, admin: true }),
-      queryApollo<{ projects: PagedItemsResponse<ProjectItem> }>({ query: ADMIN_GET_PROJECTS, variables: { page: 1, limit: 10 }, admin: true }),
-      queryApollo<{ visaArticles: PagedItemsResponse<VisaArticleItem> }>({ query: ADMIN_GET_VISA_ARTICLES, variables: { page: 1, limit: 200 }, admin: true }),
-      queryApollo<{ galleryPhotos: PagedItemsResponse<GalleryItem> }>({ query: ADMIN_GET_GALLERY, variables: { page: 1, limit: 10 }, admin: true }),
+    projectsData = await queryApollo<{ projects: ProjectItem[] }>({ query: ADMIN_GET_PROJECTS, admin: true })
+  } catch (error) {
+    console.error('Failed to load projects for admin dashboard:', error)
+  }
+
+  try {
+    ;[eventsData, visaData, galleryData, teamData] = await Promise.all([
+      queryApollo<{ paginatedEvents: PaginatedConnection<EventItem> }>({
+        query: ADMIN_GET_EVENTS,
+        variables: { pagination: { limit: 1, offset: 0 } },
+        admin: true,
+      }),
+      queryApollo<{ paginatedVisaArticles: PaginatedConnection<VisaArticleItem> }>({
+        query: ADMIN_GET_VISA_ARTICLES,
+        variables: { pagination: { limit: 200, offset: 0 } },
+        admin: true,
+      }),
+      queryApollo<{ paginatedGalleryPhotos: PaginatedConnection<GalleryItem> }>({
+        query: ADMIN_GET_GALLERY,
+        variables: { pagination: { limit: 1, offset: 0 } },
+        admin: true,
+      }),
       queryApollo<{ teamMembers: PagedItemsResponse<TeamItem> }>({ query: ADMIN_GET_TEAM, variables: { page: 1, limit: 10 }, admin: true }),
     ])
   } catch (error) {
     console.error('Failed to load admin dashboard data:', error)
   }
 
-  const totalEvents = eventsData?.events?.total ?? 0
-  const totalProjects = projectsData?.projects?.total ?? 0
-  const activeProjectsCount = (projectsData?.projects?.items ?? []).filter((project) => project.status?.toUpperCase() === 'ACTIVE').length || totalProjects
-  const totalVisaArticles = visaData?.visaArticles?.total ?? 0
-  const totalGalleryPhotos = galleryData?.galleryPhotos?.total ?? 0
-  const visaItems = visaData?.visaArticles?.items ?? []
+  const projectsList = projectsData?.projects ?? []
+  const totalEvents = eventsData?.paginatedEvents?.total ?? 0
+  const totalProjects = projectsList.length
+  const totalVisaArticles = visaData?.paginatedVisaArticles?.total ?? 0
+  const totalGalleryPhotos = galleryData?.paginatedGalleryPhotos?.total ?? 0
+  const visaItems = visaData?.paginatedVisaArticles?.items ?? []
 
   return (
     <AdminLayout title="Boshqaruv paneli">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatsCard icon={MdCalendarMonth} label="Jami tadbirlar" value={totalEvents} accent="navy" />
-        <StatsCard icon={MdRocketLaunch} label="Faol loyihalar" value={activeProjectsCount} accent="green" />
+        <StatsCard icon={MdRocketLaunch} label="Loyihalar" value={totalProjects} accent="green" />
         <StatsCard icon={MdArticle} label="Viza maqolalari" value={totalVisaArticles} accent="orange" />
         <StatsCard icon={MdPhotoLibrary} label="Galereya rasmlari" value={totalGalleryPhotos} accent="purple" />
       </div>

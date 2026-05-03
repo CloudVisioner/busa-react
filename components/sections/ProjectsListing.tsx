@@ -6,11 +6,12 @@ import { cn } from '@/lib/utils/cn'
 
 interface ProjectsListingProps {
   className?: string
-  projects?: Project[]
+  /** `null` = fetch failed (show static fallback). `[]` = loaded, none yet. Non-empty = CMS list. */
+  projects: Project[] | null
 }
 
 function ProjectsListing({ className, projects }: ProjectsListingProps) {
-  const data = projects && projects.length > 0 ? projects : STATIC_PROJECTS
+  const data = projects === null ? STATIC_PROJECTS : projects
   const countLabel = String(data.length).padStart(2, '0')
 
   return (
@@ -27,9 +28,9 @@ function ProjectsListing({ className, projects }: ProjectsListingProps) {
         ))}
       </MobileHorizontalScroller>
 
-      <div className="hidden grid-cols-1 gap-10 md:grid md:grid-cols-2 lg:grid-cols-3">
+      <div className="hidden gap-8 md:grid md:grid-cols-2 md:gap-8 xl:grid-cols-3">
         {data.map((project) => (
-          <ProjectCard key={project.id} project={project} />
+          <ProjectCard key={project.id} project={project} className="h-full" />
         ))}
       </div>
     </section>

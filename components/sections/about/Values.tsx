@@ -24,18 +24,20 @@ export function Values({ className }: ValuesProps) {
             <article
               key={value.title}
               className={cn(
-                'group relative overflow-hidden rounded-3xl border border-black/5 bg-white p-5 md:p-7 shadow-[0_12px_30px_rgba(25,28,30,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_44px_rgba(10,102,255,0.18)]',
+                'group relative min-w-0 overflow-hidden rounded-3xl border border-black/5 bg-white p-5 md:p-7 shadow-[0_12px_30px_rgba(25,28,30,0.08)] transition-[transform,box-shadow] duration-[1000ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] hover:-translate-y-[3px] hover:shadow-[0_26px_52px_-12px_rgba(15,23,42,0.15)]',
                 VALUES.length === 3 && index === VALUES.length - 1 ? 'col-span-2 mx-auto max-w-[50%]' : ''
               )}
             >
               <div className="mb-5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#e8f1ff] text-[13px] font-black text-[#0a66ff] md:h-9 md:w-9 md:text-sm">
                 {index + 1}
               </div>
-              <h3 className="mb-3 text-[15px] font-semibold text-on-surface transition-colors group-hover:text-[#0a66ff] md:text-2xl md:font-bold">
+              <h3 className="mb-3 break-words text-[15px] font-semibold text-on-surface transition-colors duration-[900ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] group-hover:text-[#0a66ff] md:text-2xl md:font-bold">
                 {value.title}
               </h3>
-              <p className="text-[13px] leading-relaxed text-on-surface-variant md:text-base md:leading-7">{value.text}</p>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#0a66ff] via-[#4f85ff] to-[#9ab9ff] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <p className="break-words text-[13px] leading-relaxed text-on-surface-variant [overflow-wrap:anywhere] md:text-base md:leading-7">
+                {value.text}
+              </p>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#0a66ff] via-[#4f85ff] to-[#9ab9ff] opacity-0 transition-opacity duration-[1000ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] group-hover:opacity-100" />
             </article>
           ))}
         </div>
