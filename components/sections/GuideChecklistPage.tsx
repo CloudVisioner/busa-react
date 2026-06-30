@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { HiCheck, HiExclamationTriangle } from 'react-icons/hi2'
 import { cn } from '@/lib/utils/cn'
 
@@ -226,15 +226,19 @@ const CHECKLIST_ITEMS: ChecklistItem[] = [
 export default function GuideChecklistPage() {
   const [activeTab, setActiveTab] = useState<'before' | 'after'>('before')
   const [activeCategory, setActiveCategory] = useState<'all' | 'documents' | 'finance' | 'housing' | 'health'>('all')
-  const [checked, setChecked] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return []
+  const [checked, setChecked] = useState<string[]>([])
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem('busa-guide-v1')
-      return saved ? JSON.parse(saved) : []
-    } catch {
-      return []
-    }
-  })
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) {
+          setChecked(parsed.filter((item): item is string => typeof item === 'string'))
+        }
+      }
+    } catch {}
+  }, [])
 
   const toggleItem = (id: string) => {
     const next = checked.includes(id) ? checked.filter((c) => c !== id) : [...checked, id]

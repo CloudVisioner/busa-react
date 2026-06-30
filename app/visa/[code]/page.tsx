@@ -4,6 +4,8 @@ import JoinCTA from '@/components/sections/about/JoinCTA'
 import VisaArticlesSection from '@/components/sections/visa/VisaArticlesSection'
 import Image from 'next/image'
 
+export const revalidate = 300
+
 interface VisaDetailConfig {
   categoryLabel: string
   title: string

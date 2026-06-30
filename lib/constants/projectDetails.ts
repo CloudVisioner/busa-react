@@ -1,6 +1,7 @@
+import { PROJECTS } from '@/lib/constants/projects'
 import type { Project } from '@/lib/types/project'
 import type { ProjectDetailContent, ProjectGalleryImage } from '@/lib/types/projectDetail'
-import { PROJECTS } from '@/lib/constants/projects'
+import { htmlToPlainText } from '@/lib/utils/richText'
 
 function projectBySlug(slug: string): Project {
   const p = PROJECTS.find((x) => x.slug === slug)
@@ -454,12 +455,13 @@ const DETAIL_BY_SLUG: Record<string, ProjectDetailContent> = {
 }
 
 export function buildDefaultProjectDetail(project: Project): ProjectDetailContent {
+  const plain = htmlToPlainText(project.description)
   return {
     pageTitle: `${project.title} | BUSA`,
     heroImage: project.coverPhoto,
-    heroEyebrow: project.category,
+    heroEyebrow: 'LOYIHA',
     heroDisplayTitle: project.title,
-    heroSubtitle: project.summary,
+    heroSubtitle: plain.slice(0, 220) || project.title,
     aboutTitle: "Nima u o'zi?",
     aboutParagraphs: [project.description],
     features: [

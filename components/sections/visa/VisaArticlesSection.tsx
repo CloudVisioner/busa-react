@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { HiOutlineClock } from 'react-icons/hi2'
 import { ROUTES } from '@/lib/constants/routes'
@@ -8,9 +9,10 @@ import { cn } from '@/lib/utils/cn'
 interface VisaArticlesSectionProps {
   className?: string
   searchQuery?: string
+  articles?: VisaArticle[]
 }
 
-interface VisaArticle {
+export interface VisaArticle {
   title: string
   slug: string
   type: string
@@ -19,7 +21,11 @@ interface VisaArticle {
   description: string
 }
 
-const ARTICLES: VisaArticle[] = [
+type VisaFilter = 'ALL' | 'D2' | 'D10' | 'E7' | 'E9' | 'GENERAL'
+
+const PAGE_SIZE = 10
+
+const STATIC_ARTICLES: VisaArticle[] = [
   {
     title: "D-2 vizasini qanday uzaytirish mumkin",
     slug: 'd-2-vizasini-qanday-uzaytirish-mumkin',
@@ -44,38 +50,92 @@ const ARTICLES: VisaArticle[] = [
     readTime: '3 daqiqa',
     description: "Ish topgandan so'ng ish izlash vizasidan professional ish vizasiga o'tishdagi asosiy bosqichlar.",
   },
+  {
+    title: 'E-9 vizasi uchun asosiy talablar',
+    slug: 'e-9-vizasi-uchun-asosiy-talablar',
+    type: 'E-9',
+    timeAgo: '5 kun oldin',
+    readTime: '6 daqiqa',
+    description: "Ishchi vizasi bo'yicha eng muhim hujjatlar va topshirish ketma-ketligi.",
+  },
 ]
 
-function VisaArticlesSection({ className, searchQuery = '' }: VisaArticlesSectionProps) {
-  const normalizedQuery = searchQuery.toLowerCase().trim()
-  const filteredArticles = ARTICLES.filter((article) => article.title.toLowerCase().includes(normalizedQuery))
+function VisaArticlesSection({ className, searchQuery = '', articles }: VisaArticlesSectionProps) {
+  const [activeFilter, setActiveFilter] = useState<VisaFilter>('ALL')
+  const [sectionSearch, setSectionSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const source = articles ?? STATIC_ARTICLES
+  const normalizedQuery = `${searchQuery} ${sectionSearch}`.toLowerCase().trim()
+  const filteredArticles = useMemo(() => {
+    return source.filter((article) => {
+      const normalizedType = article.type.toUpperCase().replace('-', '')
+      const matchesType =
+        activeFilter === 'ALL'
+          ? true
+          : activeFilter === 'E9'
+            ? normalizedType === 'E9'
+            : normalizedType === activeFilter
+      const matchesQuery = normalizedQuery
+        ? article.title.toLowerCase().includes(normalizedQuery) || article.description.toLowerCase().includes(normalizedQuery)
+        : true
+      return matchesType && matchesQuery
+    })
+  }, [source, activeFilter, normalizedQuery])
+
+  const totalPages = Math.max(1, Math.ceil(filteredArticles.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageStart = (safePage - 1) * PAGE_SIZE
+  const visibleArticles = filteredArticles.slice(pageStart, pageStart + PAGE_SIZE)
+
+  function activateFilter(next: VisaFilter) {
+    setActiveFilter(next)
+    setPage(1)
+  }
 
   return (
     <section className={cn('bg-[#f5f5f7] py-[80px]', className)}>
       <div className="mx-auto max-w-[1200px] px-[24px]">
         <div className="mb-[32px] flex flex-col justify-between gap-[24px] md:flex-row md:items-end">
           <h2 className="text-[40px] font-semibold tracking-[-0.003em] text-[#1d1d1f]">Bilimlar bazasi</h2>
-          <div className="scrollbar-hide flex flex-nowrap gap-[6px] overflow-x-auto pb-[4px] md:flex-wrap md:gap-[8px] md:overflow-visible md:pb-0">
-            <button className="shrink-0 rounded-[980px] bg-[#00236f] px-[12px] py-[6px] text-[13px] font-normal text-white md:px-[16px] md:py-[8px] md:text-[14px]">
-              Barchasi
-            </button>
-            <button className="shrink-0 rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[12px] py-[6px] text-[13px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f] md:px-[16px] md:py-[8px] md:text-[14px]">
-              D-2
-            </button>
-            <button className="shrink-0 rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[12px] py-[6px] text-[13px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f] md:px-[16px] md:py-[8px] md:text-[14px]">
-              D-10
-            </button>
-            <button className="shrink-0 rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[12px] py-[6px] text-[13px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f] md:px-[16px] md:py-[8px] md:text-[14px]">
-              E-7
-            </button>
-            <button className="shrink-0 rounded-[980px] border border-[rgba(0,0,0,0.12)] bg-transparent px-[12px] py-[6px] text-[13px] font-normal text-[#1d1d1f] transition duration-200 hover:border-[#00236f] hover:text-[#00236f] md:px-[16px] md:py-[8px] md:text-[14px]">
-              Umumiy
-            </button>
+          <div className="flex w-full max-w-md items-center rounded-full border border-slate-200 bg-white px-4 py-2">
+            <input
+              className="w-full bg-transparent text-sm text-[#1d1d1f] outline-none placeholder:text-[#86868b]"
+              onChange={(event) => {
+                setSectionSearch(event.target.value)
+                setPage(1)
+              }}
+              placeholder="Bilimlar bazasida qidiring..."
+              value={sectionSearch}
+            />
           </div>
+        </div>
+        <div className="mb-5 scrollbar-hide flex flex-nowrap gap-[6px] overflow-x-auto pb-[4px] md:flex-wrap md:gap-[8px] md:overflow-visible md:pb-0">
+          {[
+            { id: 'ALL' as const, label: 'Barchasi' },
+            { id: 'D2' as const, label: 'D-2' },
+            { id: 'D10' as const, label: 'D-10' },
+            { id: 'E7' as const, label: 'E-7' },
+            { id: 'E9' as const, label: 'E-9' },
+            { id: 'GENERAL' as const, label: 'Umumiy' },
+          ].map((filter) => (
+            <button
+              key={filter.id}
+              className={cn(
+                'shrink-0 rounded-[980px] border px-[12px] py-[6px] text-[13px] transition duration-200 md:px-[16px] md:py-[8px] md:text-[14px]',
+                activeFilter === filter.id
+                  ? 'border-[#00236f] bg-[#00236f] text-white'
+                  : 'border-[rgba(0,0,0,0.12)] bg-transparent text-[#1d1d1f] hover:border-[#00236f] hover:text-[#00236f]'
+              )}
+              onClick={() => activateFilter(filter.id)}
+              type="button"
+            >
+              {filter.label}
+            </button>
+          ))}
         </div>
 
         <div className="divide-y divide-[rgba(0,0,0,0.04)]">
-          {filteredArticles.map((article, index) => (
+          {visibleArticles.map((article, index) => (
             <div key={article.title} className={index === 0 ? '' : ''}>
               <Link
                 href={`${ROUTES.VISA}/articles/${article.slug}`}
@@ -104,15 +164,35 @@ function VisaArticlesSection({ className, searchQuery = '' }: VisaArticlesSectio
                   →
                 </span>
               </Link>
-              {index !== filteredArticles.length - 1 && <div className="h-px w-full bg-[rgba(0,0,0,0.04)]" />}
+              {index !== visibleArticles.length - 1 && <div className="h-px w-full bg-[rgba(0,0,0,0.04)]" />}
             </div>
           ))}
           {filteredArticles.length === 0 ? <p className="py-[32px] text-center text-[15px] text-[#86868b]">Hech narsa topilmadi</p> : null}
         </div>
 
-        <div className="mt-[48px] text-center">
-          <button className="text-[17px] font-normal text-[#00236f] hover:underline hover:underline-offset-4">Ko&apos;proq yuklash</button>
-        </div>
+        {filteredArticles.length > 0 ? (
+          <div className="mt-10 flex items-center justify-center gap-2">
+            <button
+              className="rounded-md border border-black/10 px-3 py-1.5 text-sm disabled:opacity-50"
+              disabled={safePage <= 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              type="button"
+            >
+              Oldingi
+            </button>
+            <span className="text-sm text-[#6e6e73]">
+              Sahifa {safePage} / {totalPages}
+            </span>
+            <button
+              className="rounded-md border border-black/10 px-3 py-1.5 text-sm disabled:opacity-50"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              type="button"
+            >
+              Keyingi
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   )

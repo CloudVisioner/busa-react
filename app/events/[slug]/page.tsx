@@ -4,24 +4,16 @@ import Footer from '@/components/layout/Footer'
 import Navbar from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/Button'
 import { FiCalendar, FiMapPin, FiStar, FiUsers } from 'react-icons/fi'
+import { queryApollo } from '@/lib/apollo/client'
+import { GET_EVENT } from '@/lib/apollo/queries'
 import { ROUTES } from '@/lib/constants/routes'
+import { CoverPhotoPlaceholder } from '@/components/media/CoverPhotoPlaceholder'
+import { CursorDrift } from '@/components/ui/CursorDrift'
+import { premiumHoverMedia, premiumHoverShadowCard } from '@/lib/ui/premiumHover'
+import { cn } from '@/lib/utils/cn'
+import { isRenderableCoverPhoto } from '@/lib/utils/coverPhoto'
 
-const EVENT_DETAILS = {
-  'navroz-2025': {
-    title: "Navro'z 2025",
-    subtitle:
-      "A celebration of renewal, cultural heritage, and academic unity. Join the BUSA community for our flagship spring equinox festival.",
-    badge: 'Academic Azure - Annual Tradition',
-    date: '21 March, 2025',
-    location: 'Grand Assembly Hall',
-    attendance: '1,200+ Members',
-    type: 'Cultural Gala',
-    heroImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAXt2abFkFh6yEwy_3ey2qEUQCv9amOCHWZY8me8Y5SM74QrfuQefp3mKTURYRh0d0UapnfrQdEeWLrxkGmk6X5iMEf8BIvpCc7KstV11jwVjCwcTpVVZNg2UpprF0L-GoIbNJAqIamermAf50BwXe7L9K90iSE8SZUAHU_5HfzLgj2tJvAwSu5d0vkRd_aQvR3IUd1H2JKS5xciMugYmaHA-zFAokR8QClk5jPbRmwMGfAZ8FYkSQvInuaGy01ikJepfpxI3YDvNU',
-  },
-} as const
-
-type EventSlug = keyof typeof EVENT_DETAILS
+export const dynamic = 'force-dynamic'
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>
@@ -34,67 +26,120 @@ function slugToTitle(slug: string): string {
     .join(' ')
 }
 
-function resolveEvent(slug: string) {
-  const defaultEvent = EVENT_DETAILS['navroz-2025']
-  const event = EVENT_DETAILS[slug as EventSlug]
-  if (event) return event
-  return {
-    ...defaultEvent,
-    title: slugToTitle(slug),
-    subtitle: "Event details are being prepared. Please check updates and registration information on BUSA's events page.",
+async function resolveEvent(slug: string) {
+  try {
+    const data = await queryApollo<{ event: { title: string; date: string; location: string; attendance?: string; type: string; description: string; coverPhoto?: string; photos?: string[] } | null }>({
+      query: GET_EVENT,
+      variables: { slug },
+      admin: true,
+      fetchPolicy: 'network-only',
+    })
+    if (data?.event) return data.event
+  } catch (error) {
+    console.error('Failed to load event detail:', error)
   }
+  return null
 }
 
 export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {
   const { slug } = await params
-  const event = resolveEvent(slug)
+  const event = await resolveEvent(slug)
   return {
-    title: `${event.title} | BUSA Events`,
-    description: event.subtitle,
+    title: `${event?.title ?? slugToTitle(slug)} | BUSA Events`,
+    description: event?.description ?? 'BUSA event details',
   }
 }
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
   const { slug } = await params
-  const event = resolveEvent(slug)
+  const event = await resolveEvent(slug)
+  const title = event?.title ?? slugToTitle(slug)
+  const heroImage = event?.coverPhoto?.trim() ?? ''
+  const showHeroImage = isRenderableCoverPhoto(heroImage)
+  const date = event?.date
+    ? new Date(event.date).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    : '-'
+  const location = event?.location ?? '-'
+  const attendance = event?.attendance ?? 'N/A'
+  const eventType = event?.type ?? 'EVENT'
+  const galleryPhotos = (event?.photos ?? []).filter(Boolean)
 
   return (
     <>
       <Navbar />
       <main className="bg-[#f7f9fb] font-body text-[#191c1e]">
         <section className="relative h-[70vh] min-h-[420px] w-full overflow-hidden bg-[#00236f]">
-          <Image src={event.heroImage} alt={event.title} fill priority sizes="100vw" className="object-cover opacity-60 mix-blend-luminosity" />
+          {showHeroImage ? (
+            <Image src={heroImage} alt={title} fill priority sizes="100vw" className="object-contain bg-[#0f172a] opacity-90" />
+          ) : (
+            <CoverPhotoPlaceholder className="absolute inset-0 h-full w-full bg-[#1e293b] text-slate-500" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#00236f] via-[#00236f]/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-7xl px-8 pb-16">
-            <h1 className="font-headline text-6xl font-bold leading-[0.9] tracking-tighter text-white md:text-8xl">{event.title}</h1>
-            <p className="mt-6 max-w-2xl text-xl font-light leading-relaxed text-blue-100">{event.subtitle}</p>
+          <div className="absolute inset-x-0 bottom-0 mx-auto w-full min-w-0 max-w-7xl px-4 pb-12 md:px-8 md:pb-16">
+            <h1 className="mx-auto max-w-full text-center font-headline text-4xl font-bold leading-[1.02] tracking-tighter text-white break-words [overflow-wrap:anywhere] drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] sm:text-5xl md:text-6xl md:leading-[0.95] lg:text-7xl xl:text-8xl">
+              {title}
+            </h1>
           </div>
         </section>
 
         <section className="border-b border-[#c5c5d3]/20 bg-white">
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-8 py-8 md:grid-cols-4">
-            <EventInfo label="Date & Time" value={event.date} icon={FiCalendar} />
-            <EventInfo label="Location" value={event.location} icon={FiMapPin} />
-            <EventInfo label="Attendance" value={event.attendance} icon={FiUsers} />
-            <EventInfo label="Event Type" value={event.type} icon={FiStar} />
+            <EventInfo label="Date & Time" value={date} icon={FiCalendar} />
+            <EventInfo label="Location" value={location} icon={FiMapPin} />
+            <EventInfo label="Attendance" value={attendance} icon={FiUsers} />
+            <EventInfo label="Event Type" value={eventType} icon={FiStar} />
           </div>
         </section>
 
         <section className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-8 py-20 lg:grid-cols-12">
-          <article className="space-y-6 text-lg font-light leading-relaxed text-slate-600 lg:col-span-7">
-            <h2 className="font-headline text-3xl font-bold tracking-tight text-[#00236f]">Renaissance of the Spirit</h2>
-            <p>
-              Navro&apos;z marks the beginning of the new year in many cultures across the Silk Road. For BUSA, it is more than a holiday - it is a moment
-              of reflection and collective vision. This year&apos;s theme, <span className="font-medium text-[#00236f]">Academic Azure</span>, bridges
-              the gap between ancient traditions and modern intellectual pursuits.
-            </p>
-            <p>
-              The evening will feature a curated program of traditional music reimagined with contemporary arrangements, guest speakers from across the
-              academic spectrum, and a showcase of student-led cultural initiatives.
-            </p>
-            <blockquote className="rounded-2xl border-l-4 border-[#00236f] bg-[#f2f4f6] p-8 font-medium italic text-[#90a8ff]">
-              The spring equinox reminds us that knowledge, like nature, is a cycle of constant renewal.
-            </blockquote>
+          <article className="min-w-0 space-y-6 text-lg font-light leading-relaxed text-slate-600 lg:col-span-7">
+            {event?.description ? (
+              <div
+                className="prose prose-slate max-w-none break-words prose-p:leading-relaxed [overflow-wrap:anywhere]"
+                dangerouslySetInnerHTML={{ __html: event.description }}
+              />
+            ) : (
+              <p>
+                Event details are being prepared. Please check updates and registration
+                information on BUSA&apos;s events page.
+              </p>
+            )}
+            {galleryPhotos.length > 0 ? (
+              <section className="mt-8">
+                <h2 className="mb-4 font-headline text-2xl font-bold tracking-tight text-[#00236f]">Event Photos</h2>
+                <div className="columns-2 gap-3 [column-fill:balance] md:columns-3">
+                  {galleryPhotos.map((photo, index) => (
+                    <CursorDrift
+                      as="figure"
+                      key={`${photo}-${index}`}
+                      className={cn(
+                        'group m-0 mb-3 break-inside-avoid overflow-hidden rounded-xl border border-black/10 bg-[#f8f9fc]',
+                        premiumHoverShadowCard,
+                      )}
+                    >
+                      {isRenderableCoverPhoto(photo) ? (
+                        <Image
+                          src={photo.trim()}
+                          alt={`${title} photo ${index + 1}`}
+                          width={1400}
+                          height={1050}
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 28vw"
+                          className={cn('h-auto w-full object-contain', premiumHoverMedia)}
+                        />
+                      ) : (
+                        <div className="relative aspect-[4/3] w-full">
+                          <CoverPhotoPlaceholder className="absolute inset-0" />
+                        </div>
+                      )}
+                    </CursorDrift>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </article>
 
           <aside className="space-y-6 lg:col-span-5">

@@ -10,6 +10,11 @@ body {
   min-height: 100vh;
 }
 
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
 /* Readable text selection (sky highlight + dark text) — avoids white-on-white */
 ::selection {
   background-color: #bae6fd;

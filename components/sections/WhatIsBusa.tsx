@@ -46,7 +46,7 @@ export function WhatIsBusa({ className }: WhatIsBusaProps) {
           </Link>
         </div>
 
-        <div className="group relative h-[300px] w-full overflow-hidden rounded-3xl bg-gradient-to-b from-white to-surface-container-lowest shadow-[0_12px_40px_rgba(0,35,111,0.12)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_24px_65px_rgba(0,35,111,0.18)] md:h-[560px]">
+        <div className="group relative h-75 w-full overflow-hidden rounded-3xl bg-linear-to-b from-white to-surface-container-lowest shadow-[0_12px_40px_rgba(0,35,111,0.12)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_24px_65px_rgba(0,35,111,0.18)] md:h-140">
           <div className="absolute inset-0 -z-20 rounded-3xl bg-primary/5" />
           <div className="absolute -inset-3 -z-10 hidden rotate-2 rounded-3xl bg-primary/8 md:block" />
           <Image
@@ -56,8 +56,8 @@ export function WhatIsBusa({ className }: WhatIsBusaProps) {
             sizes="(max-width: 768px) 100vw, 55vw"
             className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
           />
-          <div className="absolute inset-y-0 left-0 hidden w-28 bg-gradient-to-r from-surface/90 to-transparent md:block" />
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-primary/25 to-transparent" />
+          <div className="absolute inset-y-0 left-0 hidden w-28 bg-linear-to-r from-surface/90 to-transparent md:block" />
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-primary/25 to-transparent" />
         </div>
       </div>
     </section>

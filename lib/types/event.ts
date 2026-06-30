@@ -6,7 +6,7 @@ export interface Event {
   location: string
   type: string
   description: string
-  coverPhoto: string
+  coverPhoto?: string | null
   photos: string[]
-  isUpcoming: boolean
+  attendance?: string | null
 }
